@@ -9,3 +9,4 @@ A collection of helper scripts for using the automated processing results in MPI
     - Any limitations/warnings
   - Include a version number for your tool,that should be printed out when a user specifies `-v` or `--version` on the command line.
   - Commit this to your fork and open a PR in this repo to add your tool.
+  - Wait for someone to review and merge the PR. :)
