@@ -13,6 +13,7 @@ function Helptext() {
   echo -ne "Options:\n"
   echo -ne "-i, --input\t\tAn input tsv file containing the Pandora individual IDs (e.g. ABC001) whose packages you want to update, one per line.\n\t\t\t\tOne individual/data_type combination per line. Both dsDNA and ssDNA data for an individual will be pulled if available.\n"
   echo -ne "-p, --pandora_id\t\tAlternative input method. A Pandora individual ID can be provided directly from the command line. Can be provided multiple times. Mutually exclusive with -i/--input\n"
+  echo -ne "-d, --dry_run\t\t Follow normal operations, but do not overwrite live package, leaving the completed package in the temporary directory for manual checks.\n"
   echo -ne "-h, --help\t\tPrint this text and exit.\n"
   echo -ne "-v, --version \t\tPrint version and exit.\n"
 }
@@ -24,10 +25,11 @@ function errecho() { echo -e $* 1>&2 ;}
 function check_fail() { if [[ $1 != 0 ]]; then errecho "${Red}Execution failed at ${2}${Normal}"; exit 3; fi;}
 
 ## Parse CLI args.
-TEMP=`getopt -q -o hvi:p: --long help,version,input:,pandora_id: -n 'update_poseidon_metadata.sh' -- "$@"`
+TEMP=`getopt -q -o hvdi:p: --long help,dry_run,version,input:,pandora_id: -n 'update_poseidon_metadata.sh' -- "$@"`
 eval set -- "$TEMP"
 
 ## Parameter defaults
+dry_run="FALSE"
 input_tsv_fn=''
 tsv_provided='FALSE'
 contamination_snp_cutoff="100"  ## Provided to fill_in_janno.R
@@ -48,6 +50,7 @@ while true ; do
     -p|--pandora_id) pandora_ids+=("$2"); shift 2;;
     -h|--help) Helptext; exit 0 ;;
     -v|--version) echo ${VERSION}; exit 0;;
+    -d|--dry_run) dry_run="TRUE"; shift ;;
     --) break ;;
     *) echo -e "invalid option provided.\n"; Helptext; exit 1;;
   esac
@@ -132,13 +135,17 @@ for ind_id in ${pandora_ids[@]}; do
     check_fail $? "STEP 3: Trident update. ${TEMPDIR}/${ind_id}"
 
     ## Validate new package
-    errecho "${Yellow}## Validating pacakge ##${Normal}"
+    errecho "${Yellow}## Validating package ##${Normal}"
     ${trident_path} validate -d ${TEMPDIR}/${ind_id}/
     check_fail $? "STEP 4: Package valiadtion. ${TEMPDIR}/${ind_id}"
 
-    ## Move updated pacakge to live and remove temp files
-    errecho "${Yellow}## Moving temp package to live ##${Normal}"
-    mv ${TEMPDIR}/${ind_id} ${package_dir}
-    rmdir ${TEMPDIR}
+    if [[ ${dry_run} == "TRUE" ]]; then
+      errecho "${Yellow}DRY RUN: The created package can be found in: ${TEMPDIR}/${ind_id}${Normal}"
+    else
+      ## Move updated pacakge to live and remove temp files
+      errecho "${Yellow}## Moving temp package to live ##${Normal}"
+      mv ${TEMPDIR}/${ind_id} ${package_dir}
+      rmdir ${TEMPDIR}
+    fi
   fi
 done
