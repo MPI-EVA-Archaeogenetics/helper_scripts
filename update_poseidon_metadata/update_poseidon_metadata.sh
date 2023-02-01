@@ -137,7 +137,7 @@ for ind_id in ${pandora_ids[@]}; do
 
     ## Move updated pacakge to live and remove temp files
     errecho "${Yellow}## Moving temp package to live ##${Normal}"
-    # mv ${TEMPDIR}/${ind_id} ${package_dir}
-    # rmdir ${TEMPDIR}
+    mv ${TEMPDIR}/${ind_id} ${package_dir}
+    rmdir ${TEMPDIR}
   fi
 done
