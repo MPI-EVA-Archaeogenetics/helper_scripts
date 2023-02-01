@@ -33,6 +33,7 @@ tsv_provided='FALSE'
 contamination_snp_cutoff="100"  ## Provided to fill_in_janno.R
 ss_suffix="_ss"                 ## Provided to fill_in_janno.R
 geno_ploidy='haploid'           ## Provided to fill_in_janno.R
+date_stamp="$(date +'%D')"
 
 ## Print helptext and exit when no option is provided.
 if [[ "${#@}" == "1" ]]; then
