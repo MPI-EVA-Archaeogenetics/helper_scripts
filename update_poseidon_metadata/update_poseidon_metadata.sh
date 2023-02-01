@@ -128,7 +128,7 @@ for ind_id in ${pandora_ids[@]}; do
     ${trident_path} update \
       -d ${TEMPDIR}/${ind_id}/ \
       --logText "${date_stamp} helper_scripts/update_poseidon_metadata.sh ${VERSION}" \
-      --versionComponent Minor
+      --versionComponent Patch
     check_fail $? "STEP 3: Trident update. ${TEMPDIR}/${ind_id}"
 
     ## Validate new package
