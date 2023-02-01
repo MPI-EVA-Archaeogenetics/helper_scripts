@@ -101,7 +101,7 @@ for ind_id in ${pandora_ids[@]}; do
   
   ## Check for difference in md5sum of jannos
   original_md5=$(md5sum ${package_dir}/${ind_id}.janno | awk '{print $1}')
-  new_md5=$(md5sum ${TEMPDIR}/${ind_id}.janno | awk '{print $1}')
+  new_md5=$(md5sum ${TEMPDIR}/${ind_id}/${ind_id}.janno | awk '{print $1}')
 
   if [[ ${new_md5} == ${original_md5} ]]; then
     errecho "${Yellow}No change detected in metadata.${Normal}"
@@ -116,7 +116,6 @@ for ind_id in ${pandora_ids[@]}; do
     cp ${package_dir}/${ind_id}.snp    ${TEMPDIR}/${ind_id}/
     cp ${package_dir}/${ind_id}.ind    ${TEMPDIR}/${ind_id}/
     cp ${package_dir}/AE_version.txt   ${TEMPDIR}/${ind_id}/
-    mv ${TEMPDIR}/${ind_id}.janno      ${TEMPDIR}/${ind_id}/
 
     ## Update ind file from janno, just in case
     errecho "${Yellow}## Updating indFile ##${Normal}"
