@@ -8,11 +8,11 @@ Normal=$(tput sgr0)
 
 ## Helptext function
 function Helptext() {
-  echo -ne "\t usage: $0 [options] (-i input.tsv | -p pandora_id )\n\n"
+  echo -ne "\t usage: $0 [options] (-i input.tsv | -p pandora_id [ -p pandora_id2 ... ] )\n\n"
   echo -ne "This script will pull metadata for the specified individual-level poseidon packages from Pandora and Autorun_eager, check for changes, and update teh poseidon package, if needed.\n\n"
   echo -ne "Options:\n"
-  echo -ne "-i, --input\t\tAn input tsv file containing the Pandora individual IDs (e.g. ABC001) whose packages you want to update, one per line.\n\t\t\t\tOne individual/data_type combination per line. Both dsDNA and ssDNA data for an individual will be pulled if available.\n"
-  echo -ne "-p, --pandora_id\t\tAlternative input method. A Pandora individual ID can be provided directly from the command line. Can be provided multiple times. Mutually exclusive with -i/--input\n"
+  echo -ne "-i, --input\t\tAn input tsv file containing the Pandora individual IDs (e.g. ABC001) whose packages you want to update, one per line.\n\t\t\t\tOne individual/data_type combination per line. Both dsDNA and ssDNA data for an individual will be pulled if available.\n\t\t\t\tMutually exclusive with -p/--pandora_id\n"
+  echo -ne "-p, --pandora_id\tAlternative input method. A Pandora individual ID can be provided directly from the command line. Can be provided multiple times. Mutually exclusive with -i/--input\n"
   echo -ne "-d, --dry_run\t\t Follow normal operations, but do not overwrite live package, leaving the completed package in the temporary directory for manual checks.\n"
   echo -ne "-h, --help\t\tPrint this text and exit.\n"
   echo -ne "-v, --version \t\tPrint version and exit.\n"
