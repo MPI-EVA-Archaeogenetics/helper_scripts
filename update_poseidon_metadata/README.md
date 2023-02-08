@@ -12,18 +12,19 @@ Specifically, the script will re-generate a janno file for the requested package
 
 Running `update_poseidon_metadata.sh` with the `-h` or `--help` options will print usage information and a lost of the available options:
 ```
-    usage: ./update_poseidon_metadata.sh [options] (-i input.tsv | -p pandora_id [ -p pandora_id2 ... ] )
+   usage: ./update_poseidon_metadata.sh [options] (-i input.tsv | -p pandora_id [ -p pandora_id2 ... ] )
 
 This script will pull metadata for the specified individual-level poseidon packages from Pandora and Autorun_eager, check for changes, and update teh poseidon package, if needed.
 
 Options:
--i, --input       An input tsv file containing the Pandora individual IDs (e.g. ABC001) whose packages you want to update, one per line.
-                    One individual/data_type combination per line. Both dsDNA and ssDNA data for an individual will be pulled if available.
-                    Mutually exclusive with -p/--pandora_id
--p, --pandora_id  Alternative input method. A Pandora individual ID can be provided directly from the command line. Can be provided multiple times. Mutually exclusive with -i/--input
--d, --dry_run     Follow normal operations, but do not overwrite live package, leaving the completed package in the temporary directory for manual checks.
--h, --help        Print this text and exit.
--v, --version     Print version and exit.
+-i, --input         An input tsv file containing the Pandora individual IDs (e.g. ABC001) whose packages you want to update, one per line.
+                      One individual/data_type combination per line. Both dsDNA and ssDNA data for an individual will be pulled if available.
+                      Mutually exclusive with -p/--pandora_id
+-p, --pandora_id    Alternative input method. A Pandora individual ID can be provided directly from the command line. Can be provided multiple times.
+                      Mutually exclusive with -i/--input
+-d, --dry_run       Follow normal operations, but do not overwrite live package, leaving the completed package in the temporary directory for manual checks.
+-h, --help          Print this text and exit.
+-v, --version       Print version and exit.
 ```
 
 There are two ways to specify which packages should be updated:
