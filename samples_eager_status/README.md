@@ -18,7 +18,7 @@ lets say you call this text file ``` my_samples.txt ```
 
 Then run the script like below:
 ```
-samples_eager_status.sh my_samples.txt
+samples_eager_status.sh -i my_samples.txt
 
 ```
 the script will output anothr text filed called ``` my_samples.list_samples_eager_status.txt ``` with a second column next to the 
