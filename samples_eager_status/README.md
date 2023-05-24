@@ -21,7 +21,7 @@ Then run the script like below:
 samples_eager_status.sh -i my_samples.txt
 
 ```
-the script will output anothr text filed called ``` my_samples.list_samples_eager_status.txt ``` with a second column next to the 
+the script will output anothr text filed called ``` my_samples.txt_samples_eager_status.txt ``` with a second column next to the 
 original ID column saying ``` Pipeline-completed-successfully- ``` if the processing for that sample has completed succesfully. If there is nothing 
 written it means that the pipeline it's still running or hasen't started yet (or the sample ID doesn't exist). If you expect the processing to be 
 finished (e.g. all the samples from the same run finished already a while before). It culd also mean the pipeline failed for other reason and I 
