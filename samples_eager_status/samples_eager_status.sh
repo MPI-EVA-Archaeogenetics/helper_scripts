@@ -22,7 +22,6 @@ eval set -- "$TEMP"
 
 ## parameter default
 inf=""
-
 	
 ## Read in CLI arguments
 while true ; do
