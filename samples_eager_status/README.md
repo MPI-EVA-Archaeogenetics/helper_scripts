@@ -11,7 +11,6 @@ of the input sample list file:
 DRH001
 DRH002
 DRH003
-
 ```
 
 lets say you call this text file ``` my_samples.txt ```
