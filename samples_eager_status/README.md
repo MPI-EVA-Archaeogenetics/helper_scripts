@@ -13,7 +13,7 @@ DRH002
 DRH003
 ```
 
-lets say you call this text file ``` my_samples.txt ```
+lets say you call this text file `my_samples.txt`
 
 Then run the script like below:
 ```
