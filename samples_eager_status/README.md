@@ -18,7 +18,6 @@ lets say you call this text file ``` my_samples.txt ```
 Then run the script like below:
 ```
 samples_eager_status.sh -i my_samples.txt
-
 ```
 the script will output anothr text filed called ``` my_samples.txt_samples_eager_status.txt ``` with a second column next to the 
 original ID column saying ``` Pipeline-completed-successfully- ``` if the processing for that sample has completed succesfully. If there is nothing 
