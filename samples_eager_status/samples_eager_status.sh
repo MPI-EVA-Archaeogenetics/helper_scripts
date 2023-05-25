@@ -17,7 +17,7 @@ function errecho() { echo $* 1>&2 ;}
 
 
 ## Parse CLI args.
-TEMP=`getopt -q -o hvi:o: --long help,version,input:,output: -n 'samples_eager_status.sh' -- "$@"`
+TEMP=`getopt -q -o hvi: --long help,version,input: -n 'samples_eager_status.sh' -- "$@"`
 eval set -- "$TEMP"
 
 ## parameter default
