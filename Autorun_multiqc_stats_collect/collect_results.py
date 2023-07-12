@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-VERSION='0.1.0'
+VERSION='1.0.0'
 import json
 import argparse
 import sys
@@ -142,6 +142,9 @@ parser.add_argument('-H', '--header', help='Use human-readable header, instead o
 parser.add_argument("-v", "--version", action='version', version="%(prog)s {}".format(VERSION), help="Print the version and exit.")
 args = parser.parse_args()
 
+## Print version info to stderr on runtime
+print("## {}: {}".format(parser.prog, VERSION), file=sys.stderr)
+
 ## Read in list of individuals
 with open(args.input, 'r') as f:
   individuals = f.read().splitlines()
@@ -177,3 +180,6 @@ with open(args.output, 'w') as f:
   ## Add data
   for library in sorted(collected_stats.keys()):
     print(library, *[collected_stats[library][column] for column in output_columns.values()], sep="\t", file=f)
+  
+  ## Add footer with version info
+  print("## {}: {}".format(parser.prog, VERSION), file=f)
