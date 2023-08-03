@@ -10,8 +10,13 @@ ABC003
 ```
 
 Then run the script like below:
+```bash
+collect_results.py -i input.tsv -o collected_data.txt
 ```
-collect_results.py -i input.tsv -o collected_data.txt [-a SG] [-H]
+
+The following command will instead pull the SG results, and use a human-readable header line for the output table.
+```bash
+collect_results.py -i input.tsv -o collected_data.txt -a SG -H
 ```
 
 Below is an explanation of the parameters:
