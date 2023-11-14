@@ -170,7 +170,7 @@ def standardise_column_names(collected_stats):
                 new_stats[name] = new_stats[new_name]
         except KeyError:
             pass
-        print("library:", library, "stats", new_stats, sep="\n")
+        # print("library:", library, "stats", new_stats, sep="\n")
         collected_stats[library] = new_stats
     return collected_stats
 
@@ -337,7 +337,7 @@ for ind in individuals:
 
     ## Get stats
     try:
-        collected_stats = collected_stats | get_individual_library_stats(mqc_data)
+        collected_stats.update(get_individual_library_stats(mqc_data))
     except FileNotFoundError:
         print(
             "No multiqc data found for individual {}. Skipping.".format(ind),
