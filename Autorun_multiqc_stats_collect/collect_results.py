@@ -260,7 +260,7 @@ output_columns = {
     "Read_length_std_dev": "read_length_std_dev",
     "Mean_fold_coverage_on_nuclear_genome.": "mtnucratio_mqc-generalstats-mtnucratio-nuc_cov_avg",
     "Nr_nuclearDNA_reads": "mtnucratio_mqc-generalstats-mtnucratio-nucreads",
-    "%_of_mapped_reads": "QualiMap_mqc-generalstats-qualimap-percentage_aligned",
+    # "%_of_mapped_reads": "QualiMap_mqc-generalstats-qualimap-percentage_aligned",
     "Nr_of_reads_total": "QualiMap_mqc-generalstats-qualimap-total_reads",
     "Qualimap_General_error_rate": "QualiMap_mqc-generalstats-qualimap-general_error_rate",
     "StdErr_of_X_relative_coverage": "SexDetErrmine_mqc-generalstats-sexdeterrmine-RateErrX",
@@ -363,12 +363,20 @@ with open(args.output, "w") as f:
         print("Sample", *output_columns.values(), sep="\t", file=f)
     ## Add data
     for library in sorted(collected_stats.keys()):
-        print(
-            library,
-            *[collected_stats[library][column] for column in output_columns.values()],
-            sep="\t",
-            file=f
-        )
+        try:
+            print(
+                library,
+                *[
+                    collected_stats[library][column]
+                    for column in output_columns.values()
+                ],
+                sep="\t",
+                file=f,
+            )
+        except KeyError as e:
+            raise Exception(
+                f"Encountered an error while trying to print stats for library: {library}."
+            ) from e
 
     ## Add footer with version info
     print("## {}: {}".format(parser.prog, VERSION), file=f)
