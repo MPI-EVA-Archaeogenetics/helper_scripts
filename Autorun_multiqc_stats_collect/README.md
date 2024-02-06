@@ -31,8 +31,8 @@ optional arguments:
                         Input file with a list of individuals for which capture or shotgun data exists.
   -o OUTPUT, --output OUTPUT
                         Output file with a list of individuals for which capture or shotgun data exists.
-  -a {SG,TF}, --analysis_type {SG,TF}
-                        Analysis type: capture or shotgun. Options are: SG, TF. Defaults to TF.
+  -a {SG,TF,RP}, --analysis_type {SG,TF,RP}
+                        Analysis type: capture or shotgun. Options are: SG, TF, RP. Defaults to TF.
   -H, --header          Use human-readable header, instead of original MultiQC table header.
   -v, --version         Print the version and exit.
 ```
