@@ -45,9 +45,9 @@ def get_individual_library_stats(mqc_data):
             #         library_stats[key] = data["report_saved_raw_data"]["multiqc_general_stats"][key]
             #     sample_libraries.append(key)  ## Keep track of library IDs for later
         else:
-            sample_stats[key] = data["report_saved_raw_data"][
-                "multiqc_general_stats"
-            ][key]
+            sample_stats[key] = data["report_saved_raw_data"]["multiqc_general_stats"][
+                key
+            ]
 
     for library in sample_libraries:
         ## Get the sample ID from the library ID, to ensure ss libs get ss sample stats
@@ -374,7 +374,7 @@ for ind in individuals:
     mqc_data = "{}/{}/{}/{}/multiqc/multiqc_data/multiqc_data.json".format(
         root_output_path, args.analysis_type, ind[0:3], ind
     )
-    
+
     ## Infer path to MQC report
     report_path = mqc_data.replace(
         "multiqc_data/multiqc_data.json", "multiqc_report.html"
@@ -433,11 +433,14 @@ with open(args.output, "w") as f:
             ) from e
 
     ## Add footer with version info
-    flags=""
+    flags = ""
     if args.skip_check:
         flags += " --skip_check"
     if args.header:
         flags += " --header"
-    
+
     print(f"## {parser.prog}: {VERSION}", file=f)
-    print(f"## Command: {parser.prog} -i {args.input} -o {args.output} -a {args.analysis_type}{flags}", file=f)
+    print(
+        f"## Command: {parser.prog} -i {args.input} -o {args.output} -a {args.analysis_type}{flags}",
+        file=f,
+    )
