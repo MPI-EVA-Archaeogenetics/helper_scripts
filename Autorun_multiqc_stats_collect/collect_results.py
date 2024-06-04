@@ -387,7 +387,7 @@ for ind in individuals:
             collected_stats.update(get_individual_library_stats(mqc_data))
         else:
             print(
-                f"There is a large difference in the creation time between the MultiQC data file '{mqc_data}' and the corresponding HTML '{report_path}'. Skipping.",
+                f"WARNING: There is a large difference in the creation time between the MultiQC data file '{mqc_data}' and the corresponding HTML '{report_path}'. Skipping.",
                 file=sys.stderr,
             )
             skip_count += 1
