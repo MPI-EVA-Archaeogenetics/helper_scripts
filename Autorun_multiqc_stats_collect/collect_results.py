@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 import json
 import argparse
 import sys
+import os
 
 
 def get_individual_library_stats(mqc_data):
@@ -44,9 +45,9 @@ def get_individual_library_stats(mqc_data):
             #         library_stats[key] = data["report_saved_raw_data"]["multiqc_general_stats"][key]
             #     sample_libraries.append(key)  ## Keep track of library IDs for later
         else:
-            sample_stats[key] = data["report_saved_raw_data"]["multiqc_general_stats"][
-                key
-            ]
+            sample_stats[key] = data["report_saved_raw_data"][
+                "multiqc_general_stats"
+            ][key]
 
     for library in sample_libraries:
         ## Get the sample ID from the library ID, to ensure ss libs get ss sample stats
@@ -175,6 +176,32 @@ def standardise_column_names(collected_stats):
     return collected_stats
 
 
+def timestamp_diff_in_sec(file1, file2):
+    ## Get the creation time of each file
+    for f in [file1, file2]:
+        ## Check that the files indeed exist
+        if not os.path.exists(f) or not os.path.isfile(f):
+            print(
+                f"Required file {f} not found! Results for this sample might be corrupted.",
+                file=sys.stderr,
+            )
+            return 1_000_000  ## Return a large number to indicate that the files are missing
+
+    timestamp1 = os.path.getmtime(file1)
+    timestamp2 = os.path.getmtime(file2)
+
+    ## Return the modification time difference in seconds
+    return abs(timestamp1 - timestamp2)
+
+
+def files_are_consistent(mqc_data, mqc_html, skip_check=False):
+    ## Check if the multiqc data and html files are up to date
+    ## Complain if the difference is more than 1 minute (should be less than a second, but give some leeway for network/filesystem latency etc.)
+    if timestamp_diff_in_sec(mqc_data, mqc_html) > 60:
+        return skip_check
+    return True
+
+
 ## Hard-coded values
 root_output_path = "/mnt/archgen/Autorun_eager/eager_outputs/"
 
@@ -301,6 +328,12 @@ parser.add_argument(
     choices=["SG", "TF", "RP"],
 )
 parser.add_argument(
+    "--skip_check",
+    help="By default, results from runs where the consistency of the MultiQC output files cannot be verified will be skipped. Use this flag to disable this behaviour. Only recommended if you know why the check failed to begin with.",
+    default=False,
+    action="store_true",
+)
+parser.add_argument(
     "-H",
     "--header",
     help="Use human-readable header, instead of original MultiQC table header.",
@@ -319,6 +352,13 @@ args = parser.parse_args()
 ## Print version info to stderr on runtime
 print("## {}: {}".format(parser.prog, VERSION), file=sys.stderr)
 
+## Loudly declare when the script is run with the --skip_check flag
+if args.skip_check:
+    print(
+        "WARNING: Skipping the check for consistency between MultiQC data and report files. This may result in the inclusion of outdated results, or runtime errors!",
+        file=sys.stderr,
+    )
+
 ## Read in list of individuals
 with open(args.input, "r") as f:
     individuals = f.read().splitlines()
@@ -334,10 +374,24 @@ for ind in individuals:
     mqc_data = "{}/{}/{}/{}/multiqc/multiqc_data/multiqc_data.json".format(
         root_output_path, args.analysis_type, ind[0:3], ind
     )
+    
+    ## Infer path to MQC report
+    report_path = mqc_data.replace(
+        "multiqc_data/multiqc_data.json", "multiqc_report.html"
+    )
 
     ## Get stats
     try:
-        collected_stats.update(get_individual_library_stats(mqc_data))
+        ## First, ensure the MQC data are consistent with the report
+        if files_are_consistent(mqc_data, report_path, args.skip_check):
+            collected_stats.update(get_individual_library_stats(mqc_data))
+        else:
+            print(
+                f"There is a large difference in the creation time between the MultiQC data file '{mqc_data}' and the corresponding HTML '{report_path}'. Skipping.",
+                file=sys.stderr,
+            )
+            skip_count += 1
+            continue
     except FileNotFoundError:
         print(
             "No multiqc data found for individual {}. Skipping.".format(ind),
@@ -379,4 +433,11 @@ with open(args.output, "w") as f:
             ) from e
 
     ## Add footer with version info
-    print("## {}: {}".format(parser.prog, VERSION), file=f)
+    flags=""
+    if args.skip_check:
+        flags += " --skip_check"
+    if args.header:
+        flags += " --header"
+    
+    print(f"## {parser.prog}: {VERSION}", file=f)
+    print(f"## Command: {parser.prog} -i {args.input} -o {args.output} -a {args.analysis_type}{flags}", file=f)
