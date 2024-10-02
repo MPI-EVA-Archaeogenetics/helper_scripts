@@ -323,9 +323,9 @@ parser.add_argument(
 parser.add_argument(
     "-a",
     "--analysis_type",
-    help="Analysis type: capture or shotgun. Options are: SG, TF, RP. Defaults to TF.",
+    help="Analysis type: capture or shotgun. Options are: SG, TF, RP, RM. Defaults to TF.",
     default="TF",
-    choices=["SG", "TF", "RP"],
+    choices=["SG", "TF", "RP", "RM"],
 )
 parser.add_argument(
     "--skip_check",
