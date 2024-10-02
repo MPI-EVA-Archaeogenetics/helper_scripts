@@ -31,8 +31,8 @@ optional arguments:
                         Input file with a list of individuals for which capture or shotgun data exists.
   -o OUTPUT, --output OUTPUT
                         Output file with a list of individuals for which capture or shotgun data exists.
-  -a {SG,TF,RP}, --analysis_type {SG,TF,RP}
-                        Analysis type: capture or shotgun. Options are: SG, TF, RP. Defaults to TF.
+  -a {SG,TF,RP,RM}, --analysis_type {SG,TF,RP,RM}
+                        Analysis type: capture or shotgun. Options are: SG, TF, RP, RM. Defaults to TF.
   --skip_check          By default, results from runs where the consistency of the MultiQC output files 
                         cannot be verified will be skipped. Use this flag to disable this behaviour.
                         Only recommended if you know why the check failed to begin with.
