@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-VERSION = "1.1.0"
 import json
 import argparse
 import sys
+import os
+
+VERSION = "1.2.0"
 
 
 def get_individual_library_stats(mqc_data):
@@ -175,208 +177,228 @@ def standardise_column_names(collected_stats):
     return collected_stats
 
 
-## Hard-coded values
-root_output_path = "/mnt/archgen/Autorun_eager/eager_outputs/"
+def timestamp_diff_in_sec(file1, file2):
+    ## Get the creation time of each file
+    for f in [file1, file2]:
+        ## Check that the files indeed exist
+        if not os.path.exists(f) or not os.path.isfile(f):
+            print(
+                f"Required file {f} not found! Results for this sample might be corrupted.",
+                file=sys.stderr,
+            )
+            return 1_000_000  ## Return a large number to indicate that the files are missing
 
-## This is my preferred column order, but might break existing implementations of the old script.
-# output_columns={
-#   "Covered_SNPs_on_1240K"                    : "snp_coverage_mqc-generalstats-snp_coverage-Covered_Snps",
-#   "Total_SNPs_on_1240K"                      : "snp_coverage_mqc-generalstats-snp_coverage-Total_Snps",
-#   "Relative_coverage_on_X_chromosome"        : "SexDetErrmine_mqc-generalstats-sexdeterrmine-RateX",
-#   "Relative_coverage_on_Y_chromosome"        : "SexDetErrmine_mqc-generalstats-sexdeterrmine-RateY",
-#   "StdErr_of_X_relative_coverage"            : "SexDetErrmine_mqc-generalstats-sexdeterrmine-RateErrX",
-#   "StdErr_of_Y_relative_coverage"            : "SexDetErrmine_mqc-generalstats-sexdeterrmine-RateErrY",
-#   "Number_of_mapped_reads"                   : "QualiMap_mqc-generalstats-qualimap-mapped_reads",
-#   "Mean_fold_coverage"                       : "QualiMap_mqc-generalstats-qualimap-mean_coverage",
-#   "Median_fold_coverage"                     : "QualiMap_mqc-generalstats-qualimap-median_coverage",
-#   "%_of_genome_covered_by_at_least_1_read"   : "QualiMap_mqc-generalstats-qualimap-1_x_pc",
-#   "%_of_genome_covered_by_at_least_2_reads"  : "QualiMap_mqc-generalstats-qualimap-2_x_pc",
-#   "%_of_genome_covered_by_at_least_3_reads"  : "QualiMap_mqc-generalstats-qualimap-3_x_pc",
-#   "%_of_genome_covered_by_at_least_4_reads"  : "QualiMap_mqc-generalstats-qualimap-4_x_pc",
-#   "%_of_genome_covered_by_at_least_5_reads"  : "QualiMap_mqc-generalstats-qualimap-5_x_pc",
-#   "%_GC_of_unique_reads"                     : "QualiMap_mqc-generalstats-qualimap-avg_gc",
-#   "%_of_mapped_reads"                        : "QualiMap_mqc-generalstats-qualimap-percentage_aligned",
-#   "Number_of_reads_total"                    : "QualiMap_mqc-generalstats-qualimap-total_reads",
-#   "Qualimap_General_error_rate"              : "QualiMap_mqc-generalstats-qualimap-general_error_rate",
-#   "Number_of_input_reads"                    : "Samtools Flagstat (pre-samtools filter)_mqc-generalstats-samtools_flagstat_pre_samtools_filter-flagstat_total",
-#   "Number_of_input_mapped_reads"             : "Samtools Flagstat (pre-samtools filter)_mqc-generalstats-samtools_flagstat_pre_samtools_filter-mapped_passed",
-#   "Number_of_input_reads_over_30bp"          : "Samtools Flagstat (post-samtools filter)_mqc-generalstats-samtools_flagstat_post_samtools_filter-flagstat_total",
-#   "Number_of_mapped_reads_over_30bp"         : "Samtools Flagstat (post-samtools filter)_mqc-generalstats-samtools_flagstat_post_samtools_filter-mapped_passed",
-#   "%_Endogenous_DNA"                         : "endorSpy_mqc-generalstats-endorspy-endogenous_dna",
-#   "%_Endogenous_DNA_over_30bp"               : "endorSpy_mqc-generalstats-endorspy-endogenous_dna_post",
-#   "%_Duplicates"                             : "Picard_mqc-generalstats-picard-PERCENT_DUPLICATION",
-#   "Damage_5'_bp1"                            : "DamageProfiler_mqc-generalstats-damageprofiler-5_Prime1",
-#   "Damage_5'_bp2"                            : "DamageProfiler_mqc-generalstats-damageprofiler-5_Prime2",
-#   "Damage_3'_bp1"                            : "DamageProfiler_mqc-generalstats-damageprofiler-3_Prime1",
-#   "Damage_3'_bp2"                            : "DamageProfiler_mqc-generalstats-damageprofiler-3_Prime2",
-#   "Mean_read_length"                         : "DamageProfiler_mqc-generalstats-damageprofiler-mean_readlength",
-#   "Median_read_length"                       : "DamageProfiler_mqc-generalstats-damageprofiler-median",
-#   "Nr_mtDNA_reads"                           : "mtnucratio_mqc-generalstats-mtnucratio-mtreads",
-#   "Mean_mt_coverage"                         : "mtnucratio_mqc-generalstats-mtnucratio-mt_cov_avg",
-#   "mt_to_nuclear_read_ratio"                 : "mtnucratio_mqc-generalstats-mtnucratio-mt_nuc_ratio",
-#   "Read_length_std_dev"                      : "DamageProfiler_mqc-generalstats-damageprofiler-std",
-#   "Mean_fold_coverage_on_nuclear_genome"     : "mtnucratio_mqc-generalstats-mtnucratio-nuc_cov_avg",
-#   "Nr_nuclearDNA_reads"                      : "mtnucratio_mqc-generalstats-mtnucratio-nucreads",
-#   "Nr_SNPs_used_in_contamination_estimation" : "nuclear_contamination_mqc-generalstats-nuclear_contamination-Num_SNPs",
-#   "Nuclear_contamination_M1_MOM"             : "nuclear_contamination_mqc-generalstats-nuclear_contamination-Method1_MOM_estimate",
-#   "Nuclear_contamination_M1_MOM_Error"       : "nuclear_contamination_mqc-generalstats-nuclear_contamination-Method1_MOM_SE",
-#   "Nuclear_contamination_M1_ML"              : "nuclear_contamination_mqc-generalstats-nuclear_contamination-Method1_ML_estimate",
-#   "Nuclear_contamination_M1_ML_Error"        : "nuclear_contamination_mqc-generalstats-nuclear_contamination-Method1_ML_SE",
-#   "Nuclear_contamination_M2_MOM"             : "nuclear_contamination_mqc-generalstats-nuclear_contamination-Method2_MOM_estimate",
-#   "Nuclear_contamination_M2_MOM_Error"       : "nuclear_contamination_mqc-generalstats-nuclear_contamination-Method2_MOM_SE",
-#   "Nuclear_contamination_M2_ML"              : "nuclear_contamination_mqc-generalstats-nuclear_contamination-Method2_ML_estimate",
-#   "Nuclear_contamination_M2_ML_Error"        : "nuclear_contamination_mqc-generalstats-nuclear_contamination-Method2_ML_SE",
-# }
+    timestamp1 = os.path.getmtime(file1)
+    timestamp2 = os.path.getmtime(file2)
 
-## Column order same as old script.
-output_columns = {
-    "Covered_SNPs_on_1240K": "snps_covered",
-    "Total_SNPs_on_1240K": "snps_total",
-    "Nr_of_input_reads": "Samtools Flagstat (pre-samtools filter)_mqc-generalstats-samtools_flagstat_pre_samtools_filter-flagstat_total",
-    "Nr_of_mapped_reads": "Samtools Flagstat (pre-samtools filter)_mqc-generalstats-samtools_flagstat_pre_samtools_filter-mapped_passed",
-    "Nr_of_input_reads_over_30bp": "Samtools Flagstat (post-samtools filter)_mqc-generalstats-samtools_flagstat_post_samtools_filter-flagstat_total",
-    "%_Endogenous_DNA": "endogenous",
-    "Nr_of_mapped_reads_over_30bp": "Samtools Flagstat (post-samtools filter)_mqc-generalstats-samtools_flagstat_post_samtools_filter-mapped_passed",
-    "%_Endogenous_DNA_over_30bp": "endogenous_post",
-    "Proportion_of_duplicate_reads": "Picard_mqc-generalstats-picard-PERCENT_DUPLICATION",
-    "Damage_5'_bp1": "dmg_5p_1",
-    "Damage_5'_bp2": "dmg_5p_2",
-    "Damage_3'_bp1": "dmg_3p_1",
-    "Damage_3'_bp2": "dmg_3p_2",
-    "Mean_read_length": "mean_read_length",
-    "Median_read_length": "median_read_length",
-    "Nr_mtDNA_reads": "mtnucratio_mqc-generalstats-mtnucratio-mtreads",
-    "Mean_mt_coverage": "mtnucratio_mqc-generalstats-mtnucratio-mt_cov_avg",
-    "mt_to_nuclear_read_ratio": "mtnucratio_mqc-generalstats-mtnucratio-mt_nuc_ratio",
-    "Nr_of_unique_mapped_reads": "QualiMap_mqc-generalstats-qualimap-mapped_reads",
-    "Mean_fold_coverage": "QualiMap_mqc-generalstats-qualimap-mean_coverage",
-    "Median_fold_coverage": "QualiMap_mqc-generalstats-qualimap-median_coverage",
-    "%_of_genome_covered_by_at_least_1_read": "QualiMap_mqc-generalstats-qualimap-1_x_pc",
-    "%_of_genome_covered_by_at_least_2_reads": "QualiMap_mqc-generalstats-qualimap-2_x_pc",
-    "%_of_genome_covered_by_at_least_3_reads": "QualiMap_mqc-generalstats-qualimap-3_x_pc",
-    "%_of_genome_covered_by_at_least_4_reads": "QualiMap_mqc-generalstats-qualimap-4_x_pc",
-    "%_of_genome_covered_by_at_least_5_reads": "QualiMap_mqc-generalstats-qualimap-5_x_pc",
-    "%_GC_of_unique_reads": "QualiMap_mqc-generalstats-qualimap-avg_gc",
-    "Read_length_std_dev": "read_length_std_dev",
-    "Mean_fold_coverage_on_nuclear_genome": "mtnucratio_mqc-generalstats-mtnucratio-nuc_cov_avg",
-    "Nr_nuclearDNA_reads": "mtnucratio_mqc-generalstats-mtnucratio-nucreads",
-    # "%_of_mapped_reads": "QualiMap_mqc-generalstats-qualimap-percentage_aligned",
-    "Nr_of_reads_total": "QualiMap_mqc-generalstats-qualimap-total_reads",
-    "Qualimap_General_error_rate": "QualiMap_mqc-generalstats-qualimap-general_error_rate",
-    "StdErr_of_X_relative_coverage": "SexDetErrmine_mqc-generalstats-sexdeterrmine-RateErrX",
-    "StdErr_of_Y_relative_coverage": "SexDetErrmine_mqc-generalstats-sexdeterrmine-RateErrY",
-    "Relative_coverage_on_X_chromosome": "SexDetErrmine_mqc-generalstats-sexdeterrmine-RateX",
-    "Relative_coverage_on_Y_chromosome": "SexDetErrmine_mqc-generalstats-sexdeterrmine-RateY",
-    "Nr_SNPs_used_in_contamination_estimation": "nuc_cont_snps",
-    "Nuclear_contamination_M1_ML": "nuc_cont_m1_ml_est",
-    "Nuclear_contamination_M1_ML_Error": "nuc_cont_m1_ml_se",
-    "Nuclear_contamination_M1_MOM": "nuc_cont_m1_mom_est",
-    "Nuclear_contamination_M1_MOM_Error": "nuc_cont_m1_mom_se",
-    "Nuclear_contamination_M2_ML": "nuc_cont_m2_ml_est",
-    "Nuclear_contamination_M2_ML_Error": "nuc_cont_m2_ml_se",
-    "Nuclear_contamination_M2_MOM": "nuc_cont_m2_mom_est",
-    "Nuclear_contamination_M2_MOM_Error": "nuc_cont_m2_mom_se",
-}
+    ## Return the modification time difference in seconds
+    return abs(timestamp1 - timestamp2)
 
-parser = argparse.ArgumentParser(
-    description="This is a script for collecting a batch of library-level multiqc stats for individuals for which capture or shotgun data exists."
-)
-parser.add_argument(
-    "-i",
-    "--input",
-    help="Input file with a list of individuals for which capture or shotgun data exists.",
-    required=True,
-)
-parser.add_argument(
-    "-o",
-    "--output",
-    help="Output file with a list of individuals for which capture or shotgun data exists.",
-    required=True,
-)
-parser.add_argument(
-    "-a",
-    "--analysis_type",
-    help="Analysis type: capture or shotgun. Options are: SG, TF, RP. Defaults to TF.",
-    default="TF",
-    choices=["SG", "TF", "RP"],
-)
-parser.add_argument(
-    "-H",
-    "--header",
-    help="Use human-readable header, instead of original MultiQC table header.",
-    default=False,
-    action="store_true",
-)
-parser.add_argument(
-    "-v",
-    "--version",
-    action="version",
-    version="%(prog)s {}".format(VERSION),
-    help="Print the version and exit.",
-)
-args = parser.parse_args()
 
-## Print version info to stderr on runtime
-print("## {}: {}".format(parser.prog, VERSION), file=sys.stderr)
+def files_are_consistent(mqc_data, mqc_html, skip_check=False):
+    ## Check if the multiqc data and html files are up to date
+    ## Complain if the difference is more than 1 minute (should be less than a second, but give some leeway for network/filesystem latency etc.)
+    if timestamp_diff_in_sec(mqc_data, mqc_html) > 60:
+        return skip_check
+    return True
 
-## Read in list of individuals
-with open(args.input, "r") as f:
-    individuals = f.read().splitlines()
-    print(
-        "Found {} individuals in input file.".format(len(individuals)), file=sys.stderr
+def main():
+    ## Column order same as old script.
+    output_columns = {
+        "Covered_SNPs_on_1240K": "snps_covered",
+        "Total_SNPs_on_1240K": "snps_total",
+        "Nr_of_input_reads": "Samtools Flagstat (pre-samtools filter)_mqc-generalstats-samtools_flagstat_pre_samtools_filter-flagstat_total",
+        "Nr_of_mapped_reads": "Samtools Flagstat (pre-samtools filter)_mqc-generalstats-samtools_flagstat_pre_samtools_filter-mapped_passed",
+        "Nr_of_input_reads_over_30bp": "Samtools Flagstat (post-samtools filter)_mqc-generalstats-samtools_flagstat_post_samtools_filter-flagstat_total",
+        "%_Endogenous_DNA": "endogenous",
+        "Nr_of_mapped_reads_over_30bp": "Samtools Flagstat (post-samtools filter)_mqc-generalstats-samtools_flagstat_post_samtools_filter-mapped_passed",
+        "%_Endogenous_DNA_over_30bp": "endogenous_post",
+        "Proportion_of_duplicate_reads": "Picard_mqc-generalstats-picard-PERCENT_DUPLICATION",
+        "Damage_5'_bp1": "dmg_5p_1",
+        "Damage_5'_bp2": "dmg_5p_2",
+        "Damage_3'_bp1": "dmg_3p_1",
+        "Damage_3'_bp2": "dmg_3p_2",
+        "Mean_read_length": "mean_read_length",
+        "Median_read_length": "median_read_length",
+        "Nr_mtDNA_reads": "mtnucratio_mqc-generalstats-mtnucratio-mtreads",
+        "Mean_mt_coverage": "mtnucratio_mqc-generalstats-mtnucratio-mt_cov_avg",
+        "mt_to_nuclear_read_ratio": "mtnucratio_mqc-generalstats-mtnucratio-mt_nuc_ratio",
+        "Nr_of_unique_mapped_reads": "QualiMap_mqc-generalstats-qualimap-mapped_reads",
+        "Mean_fold_coverage": "QualiMap_mqc-generalstats-qualimap-mean_coverage",
+        "Median_fold_coverage": "QualiMap_mqc-generalstats-qualimap-median_coverage",
+        "%_of_genome_covered_by_at_least_1_read": "QualiMap_mqc-generalstats-qualimap-1_x_pc",
+        "%_of_genome_covered_by_at_least_2_reads": "QualiMap_mqc-generalstats-qualimap-2_x_pc",
+        "%_of_genome_covered_by_at_least_3_reads": "QualiMap_mqc-generalstats-qualimap-3_x_pc",
+        "%_of_genome_covered_by_at_least_4_reads": "QualiMap_mqc-generalstats-qualimap-4_x_pc",
+        "%_of_genome_covered_by_at_least_5_reads": "QualiMap_mqc-generalstats-qualimap-5_x_pc",
+        "%_GC_of_unique_reads": "QualiMap_mqc-generalstats-qualimap-avg_gc",
+        "Read_length_std_dev": "read_length_std_dev",
+        "Mean_fold_coverage_on_nuclear_genome": "mtnucratio_mqc-generalstats-mtnucratio-nuc_cov_avg",
+        "Nr_nuclearDNA_reads": "mtnucratio_mqc-generalstats-mtnucratio-nucreads",
+        # "%_of_mapped_reads": "QualiMap_mqc-generalstats-qualimap-percentage_aligned",
+        "Nr_of_reads_total": "QualiMap_mqc-generalstats-qualimap-total_reads",
+        "Qualimap_General_error_rate": "QualiMap_mqc-generalstats-qualimap-general_error_rate",
+        "StdErr_of_X_relative_coverage": "SexDetErrmine_mqc-generalstats-sexdeterrmine-RateErrX",
+        "StdErr_of_Y_relative_coverage": "SexDetErrmine_mqc-generalstats-sexdeterrmine-RateErrY",
+        "Relative_coverage_on_X_chromosome": "SexDetErrmine_mqc-generalstats-sexdeterrmine-RateX",
+        "Relative_coverage_on_Y_chromosome": "SexDetErrmine_mqc-generalstats-sexdeterrmine-RateY",
+        "Nr_SNPs_used_in_contamination_estimation": "nuc_cont_snps",
+        "Nuclear_contamination_M1_ML": "nuc_cont_m1_ml_est",
+        "Nuclear_contamination_M1_ML_Error": "nuc_cont_m1_ml_se",
+        "Nuclear_contamination_M1_MOM": "nuc_cont_m1_mom_est",
+        "Nuclear_contamination_M1_MOM_Error": "nuc_cont_m1_mom_se",
+        "Nuclear_contamination_M2_ML": "nuc_cont_m2_ml_est",
+        "Nuclear_contamination_M2_ML_Error": "nuc_cont_m2_ml_se",
+        "Nuclear_contamination_M2_MOM": "nuc_cont_m2_mom_est",
+        "Nuclear_contamination_M2_MOM_Error": "nuc_cont_m2_mom_se",
+    }
+
+    parser = argparse.ArgumentParser(
+        description="This is a script for collecting a batch of library-level multiqc stats for individuals for which capture or shotgun data exists."
     )
-
-## Iterate over individuals and collect stats
-collected_stats = {}
-skip_count = 0
-for ind in individuals:
-    ## Set input file path
-    mqc_data = "{}/{}/{}/{}/multiqc/multiqc_data/multiqc_data.json".format(
-        root_output_path, args.analysis_type, ind[0:3], ind
+    parser.add_argument(
+        "-r",
+        "--root_output_path",
+        help="The root directory where the eager output lies. Within this directory there should be the structure <analysis_type>/<site_id>/<individual_id>/*.",
+        required=False,
+        default="/mnt/archgen/Autorun_eager/eager_outputs/",
     )
+    parser.add_argument(
+        "-i",
+        "--input",
+        help="Input file with a list of individuals for which capture or shotgun data exists.",
+        required=True,
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        help="Output file with a list of individuals for which capture or shotgun data exists.",
+        required=True,
+    )
+    parser.add_argument(
+        "-a",
+        "--analysis_type",
+        help="Analysis type: capture or shotgun. Options are: SG, TF, RP, RM. Defaults to TF.",
+        default="TF",
+        choices=["SG", "TF", "RP", "RM"],
+    )
+    parser.add_argument(
+        "--skip_check",
+        help="By default, results from runs where the consistency of the MultiQC output files cannot be verified will be skipped. Use this flag to disable this behaviour. Only recommended if you know why the check failed to begin with.",
+        default=False,
+        action="store_true",
+    )
+    parser.add_argument(
+        "-H",
+        "--header",
+        help="Use human-readable header, instead of original MultiQC table header.",
+        default=False,
+        action="store_true",
+    )
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version="%(prog)s {}".format(VERSION),
+        help="Print the version and exit.",
+    )
+    args = parser.parse_args()
 
-    ## Get stats
-    try:
-        collected_stats.update(get_individual_library_stats(mqc_data))
-    except FileNotFoundError:
+    ## Print version info to stderr on runtime
+    print("## {}: {}".format(parser.prog, VERSION), file=sys.stderr)
+
+    ## Loudly declare when the script is run with the --skip_check flag
+    if args.skip_check:
         print(
-            "No multiqc data found for individual {}. Skipping.".format(ind),
+            "WARNING: Skipping the check for consistency between MultiQC data and report files. This may result in the inclusion of outdated results, or runtime errors!",
             file=sys.stderr,
         )
-        skip_count += 1
-        continue
-    print("Collected stats for individual {}.".format(ind), file=sys.stderr)
 
-## Print number of skipped individuals to stderr if any
-if skip_count > 0:
-    print(
-        "WARNING: No data was found for {} individuals!".format(skip_count),
-        file=sys.stderr,
-    )
+    ## Read in list of individuals
+    with open(args.input, "r") as f:
+        individuals = f.read().splitlines()
+        print(
+            "Found {} individuals in input file.".format(len(individuals)), file=sys.stderr
+        )
 
-## Print results to output file
-with open(args.output, "w") as f:
-    ## Add header
-    if args.header:
-        print("Sample", *output_columns.keys(), sep="\t", file=f)
-    else:
-        print("Sample", *output_columns.values(), sep="\t", file=f)
-    ## Add data
-    for library in sorted(collected_stats.keys()):
+    ## Iterate over individuals and collect stats
+    collected_stats = {}
+    skip_count = 0
+    for ind in individuals:
+        ## Set input file path
+        mqc_data = "{}/{}/{}/{}/multiqc/multiqc_data/multiqc_data.json".format(
+            args.root_output_path, args.analysis_type, ind[0:3], ind
+        )
+
+        ## Infer path to MQC report
+        report_path = mqc_data.replace(
+            "multiqc_data/multiqc_data.json", "multiqc_report.html"
+        )
+
+        ## Get stats
         try:
+            ## First, ensure the MQC data are consistent with the report
+            if files_are_consistent(mqc_data, report_path, args.skip_check):
+                collected_stats.update(get_individual_library_stats(mqc_data))
+            else:
+                print(
+                    f"WARNING: There is a large difference in the creation time between the MultiQC data file '{mqc_data}' and the corresponding HTML '{report_path}'. Skipping.",
+                    file=sys.stderr,
+                )
+                skip_count += 1
+                continue
+        except FileNotFoundError:
             print(
-                library,
-                *[
-                    collected_stats[library][column]
-                    for column in output_columns.values()
-                ],
-                sep="\t",
-                file=f,
+                "No multiqc data found for individual {}. Skipping.".format(ind),
+                file=sys.stderr,
             )
-        except KeyError as e:
-            raise Exception(
-                f"Encountered an error while trying to print stats for library: {library}."
-            ) from e
+            skip_count += 1
+            continue
+        print("Collected stats for individual {}.".format(ind), file=sys.stderr)
 
-    ## Add footer with version info
-    print("## {}: {}".format(parser.prog, VERSION), file=f)
+    ## Print number of skipped individuals to stderr if any
+    if skip_count > 0:
+        print(
+            "WARNING: No data was found for {} individuals!".format(skip_count),
+            file=sys.stderr,
+        )
+
+    ## Print results to output file
+    with open(args.output, "w") as f:
+        ## Add header
+        if args.header:
+            print("Sample", *output_columns.keys(), sep="\t", file=f)
+        else:
+            print("Sample", *output_columns.values(), sep="\t", file=f)
+        ## Add data
+        for library in sorted(collected_stats.keys()):
+            try:
+                print(
+                    library,
+                    *[
+                        collected_stats[library][column]
+                        for column in output_columns.values()
+                    ],
+                    sep="\t",
+                    file=f,
+                )
+            except KeyError as e:
+                raise Exception(
+                    f"Encountered an error while trying to print stats for library: {library}."
+                ) from e
+
+        ## Add footer with version info
+        flags = ""
+        if args.skip_check:
+            flags += " --skip_check"
+        if args.header:
+            flags += " --header"
+
+        print(f"## {parser.prog}: {VERSION}", file=f)
+        print(
+            f"## Command: {parser.prog} -i {args.input} -o {args.output} -a {args.analysis_type}{flags}",
+            file=f,
+        )
+
+if __name__ == "__main__":
+    main()
