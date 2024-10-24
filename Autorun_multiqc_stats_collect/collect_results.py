@@ -3,6 +3,12 @@ import json
 import argparse
 import sys
 import os
+try:
+    import pyPandoraHelper
+except ImportError:
+    import pip
+    pip.main(['install', '/mnt/archgen/tools/helper_scripts/py_helpers/'])
+    import pyPandoraHelper
 
 VERSION = "1.3.0"
 
@@ -379,12 +385,18 @@ def main():
     for ind in individuals:
         ## Set input file path
         mqc_data = "{}/{}/{}/{}/multiqc/multiqc_data/multiqc_data.json".format(
-            args.root_output_path, args.analysis_type, ind[0:3], ind
+            args.root_output_path, args.analysis_type, pyPandoraHelper.get_site_id(ind), ind
         )
 
         ## Infer path to MQC report
         report_path = mqc_data.replace(
             "multiqc_data/multiqc_data.json", "multiqc_report.html"
+        )
+
+        ## Infer path to nf-core/eager input TSV
+        ##  Making the assumption that this is in the same directory as the root_output_path
+        report_path = "{}/../eager_inputs/{}/{}/{}/multiqc/multiqc_data/multiqc_data.json".format(
+            args.root_output_path, args.analysis_type, pyPandoraHelper.get_site_id(ind), ind
         )
 
         ## Get stats
