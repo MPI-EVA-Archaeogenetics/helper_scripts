@@ -4,7 +4,7 @@ import argparse
 import sys
 import os
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 
 
 def get_individual_library_stats(mqc_data):
@@ -201,6 +201,58 @@ def files_are_consistent(mqc_data, mqc_html, skip_check=False):
     if timestamp_diff_in_sec(mqc_data, mqc_html) > 60:
         return skip_check
     return True
+
+def read_eager_input_table(file_path):
+    '''
+    Creates dictionaries with all the possible combinations of the columns in the given file.
+    '''
+    l = file_path.readlines()
+    headers = l[0].strip().split('\t')
+    return map(lambda row: dict(zip(headers, row.split('\t'))), l[1:])
+
+import glob
+
+def dict_data(path='./', columns=[]):
+    '''
+    Asks for input from the user. The input should be a directory for a folder and any number of the words from 
+        the allowed_word list.
+    
+    A \\*.tsv is always added automatically at the end of the given directory, so that only .tsv files 
+        will be searched for, but it should also be taken into consideration when providing the directory 
+        for the folder by the user.
+    
+    All of the .tsv files in the folder are read.
+
+    This function calls the function above to create a dictionary out of the .tsv files of the given folder 
+        and then prints a list with all the requested dictionaries (could be just one or could be multiple).
+
+    The requested dictionary will always have as keys the data from the Library_ID column of the .tsv files 
+        and as correspoding values the data of the column which titled with the word provided by the user
+        (one of the words in the allowed_word list).
+
+    If the user provides multiple words, a dictionary will be created for each of the corresponding columns.
+    '''
+    allowed_words = {"Sample_Name", "Lane", "Colour_Chemistry", "SeqType", "Organism", "Strandedness", 
+                        "UDG_Treatment", "R1", "R2", "BAM"}
+    if all(word in allowed_words for word in columns):
+        pattern = path + '*.tsv'
+        p = glob.glob(pattern)
+        print(pattern) # Prints the whole of the provided pattern. Helpful to identify a problem caused by problematic directory input
+        asked_dict = {}
+        if not p:
+            print("No .tsv files found in the specified folder.") # Returns an error message if there is an issue with the creation of p
+            return
+        
+        asked_dict = [{} for _ in columns]  # Create a list of empty dictionaries for each requested column
+        for file_path in p:
+            with open(file_path, 'r') as f: 
+                    for row in read_eager_input_table(f): # Calls the above function
+                        if "Library_ID" in row: # This part could be skipped but eh, whatever
+                            key = row["Library_ID"]
+                            for idx, col in enumerate(columns):
+                                asked_dict[idx][key] = row[col]
+                            
+        print(asked_dict)
 
 def main():
     ## Column order same as old script.
