@@ -10,7 +10,7 @@ except ImportError:
     pip.main(['install', '/mnt/archgen/tools/helper_scripts/py_helpers/'])
     import pyPandoraHelper
 
-VERSION = "1.3.0"
+VERSION = "1.3.1"
 
 
 def get_individual_library_stats(mqc_data):
@@ -395,8 +395,8 @@ def main():
 
         ## Infer path to nf-core/eager input TSV
         ##  Making the assumption that this is in the same directory as the root_output_path
-        report_path = "{}/../eager_inputs/{}/{}/{}/multiqc/multiqc_data/multiqc_data.json".format(
-            args.root_output_path, args.analysis_type, pyPandoraHelper.get_site_id(ind), ind
+        tsv_path = "{}/../eager_inputs/{}/{}/{}/{}.tsv".format(
+            args.root_output_path, args.analysis_type, pyPandoraHelper.get_site_id(ind), ind, ind
         )
 
         ## Get stats
@@ -404,6 +404,7 @@ def main():
             ## First, ensure the MQC data are consistent with the report
             if files_are_consistent(mqc_data, report_path, args.skip_check):
                 collected_stats.update(get_individual_library_stats(mqc_data))
+                ## TODO Read eager input TSV and add attributes to the collected stats
             else:
                 print(
                     f"WARNING: There is a large difference in the creation time between the MultiQC data file '{mqc_data}' and the corresponding HTML '{report_path}'. Skipping.",
