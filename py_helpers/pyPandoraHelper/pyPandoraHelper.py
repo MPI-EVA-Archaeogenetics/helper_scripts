@@ -142,19 +142,19 @@ def main():
     print('The allowed values are:',allowed_get_values)
   else:
     if args.get == "site_id":
-      print(get_site_id(args.pandora_id))
+      print(get_site_id(args.pandora_id), args.keep_ss_suffix)
     elif args.get in ["ind_id", "individual_id"]:
-      print(get_ind_id(args.pandora_id))
+      print(get_ind_id(args.pandora_id), args.keep_ss_suffix)
     elif args.get == "sample_id":
-      print(get_sample_id(args.pandora_id))
+      print(get_sample_id(args.pandora_id), args.keep_ss_suffix)
     elif args.get == "extract_id":
-      print(get_extract_id(args.pandora_id))
+      print(get_extract_id(args.pandora_id), args.keep_ss_suffix)
     elif args.get == "library_id":
-      print(get_library_id(args.pandora_id))
+      print(get_library_id(args.pandora_id), args.keep_ss_suffix)
     elif args.get == "capture_id":
-      print(get_capture_id(args.pandora_id))
+      print(get_capture_id(args.pandora_id), args.keep_ss_suffix)
     elif args.get == "sequencing_id":
-      print(get_sequencing_id(args.pandora_id))
+      print(get_sequencing_id(args.pandora_id), args.keep_ss_suffix)
   
 if __name__ == '__main__':
   main()
