@@ -16,12 +16,12 @@ def _remove_suffix(ind_id: str, keep_ss_suffix: bool = False) -> str:
     result=ind_id.strip()
   return(result)
 
-def get_site_id(id: str) -> str:
+def get_site_id(id: str, keep_ss_suffix: bool = False) -> str:
   '''
   This function takes any Pandora_ID and returns the part of it that corresponds to the Site_ID.
   '''
-  ## Check provided for '_ss' suffix, and remove it if present
-  result=_remove_suffix(id.strip().split('.')[0])[0:-3]
+  ## The Site_Id never has a suffix, but the option is provided for consistency.
+  result=_remove_suffix(id.strip().split('.')[0], keep_ss_suffix)[0:-3]
   return(result)
 
 def get_ind_id(id: str, keep_ss_suffix: bool = False) -> str:
@@ -103,7 +103,7 @@ def test():
     try:
       print(format_str.format(''              ,'suffix=False'                                ,'suffix=True'))
       print(format_str.format('Pandora_ID:'   , id                                           , id))
-      print(format_str.format('Site_ID:'      , get_site_id(id)                              , get_site_id(id)))
+      print(format_str.format('Site_ID:'      , get_site_id(id, keep_ss_suffix = False)      , get_site_id(id, keep_ss_suffix = True)))
       print(format_str.format('Individual_ID:', get_ind_id(id, keep_ss_suffix = False)       , get_ind_id(id, keep_ss_suffix = True)))
       print(format_str.format('Sample_ID:'    , get_sample_id(id, keep_ss_suffix = False)    , get_sample_id(id, keep_ss_suffix = True)))
       print(format_str.format('Extract_ID:'   , get_extract_id(id, keep_ss_suffix = False)   , get_extract_id(id, keep_ss_suffix = True)))
@@ -134,22 +134,23 @@ def main():
   parser.add_argument('pandora_id', type=str, help='The Pandora_ID to infer from')
   args = parser.parse_args()
   
-  allowed_get_values = ["site_id", "ind_id", "individual_id", "sample_id", "extract_id", "library_id", "capture_id", "sequencing_id" ]
+  allowed_get_values = ["site_id", "ind_id", "individual_id", "sample_id", "extract_id", "library_id", "lib_id", "capture_id", "sequencing_id" ]
   if args.test:
     test()
   elif args.get not in allowed_get_values:
     print('The provided value for the -g/--get argument is not allowed.')
     print('The allowed values are:',allowed_get_values)
   else:
+    ## TODO ValueError handling for CLI.
     if args.get == "site_id":
-      print(get_site_id(args.pandora_id))
+      print(get_site_id(args.pandora_id, args.keep_ss_suffix))
     elif args.get in ["ind_id", "individual_id"]:
       print(get_ind_id(args.pandora_id, args.keep_ss_suffix))
     elif args.get == "sample_id":
       print(get_sample_id(args.pandora_id, args.keep_ss_suffix))
     elif args.get == "extract_id":
       print(get_extract_id(args.pandora_id, args.keep_ss_suffix))
-    elif args.get == "library_id":
+    elif args.get in ["library_id", "lib_id"]:
       print(get_library_id(args.pandora_id, args.keep_ss_suffix))
     elif args.get == "capture_id":
       print(get_capture_id(args.pandora_id, args.keep_ss_suffix))
