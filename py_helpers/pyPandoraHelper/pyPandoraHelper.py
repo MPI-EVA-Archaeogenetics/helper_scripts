@@ -142,7 +142,7 @@ def main():
     print('The allowed values are:',allowed_get_values)
   else:
     if args.get == "site_id":
-      print(get_site_id(args.pandora_id, args.keep_ss_suffix))
+      print(get_site_id(args.pandora_id))
     elif args.get in ["ind_id", "individual_id"]:
       print(get_ind_id(args.pandora_id, args.keep_ss_suffix))
     elif args.get == "sample_id":
