@@ -76,7 +76,7 @@ def get_sequencing_id(id: str, keep_ss_suffix: bool = False) -> str:
   This function takes any Pandora_ID and returns the part of it that corresponds to the Sequencing_ID.
   '''
   x=id.strip().split('.')
-  if len(x) < 3:
+  if len(x) < 4:
     raise ValueError('The provided Pandora_ID does not contain the Sequencing_ID.')
   result=_remove_suffix(x[0], keep_ss_suffix)+'.'+x[1]+'.'+x[2]+'.'+x[3]
   return(result)
