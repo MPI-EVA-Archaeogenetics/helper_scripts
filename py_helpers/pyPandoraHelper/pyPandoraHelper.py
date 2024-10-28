@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 VERSION = '0.1.0' 
 
 def _remove_suffix(ind_id: str, keep_ss_suffix: bool = False) -> str:
