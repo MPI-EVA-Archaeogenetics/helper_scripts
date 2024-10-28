@@ -3,12 +3,13 @@ import json
 import argparse
 import sys
 import os
+from typing import List, Dict, Union
 try:
-    import pyPandoraHelper
+    import pyPandoraHelper as pH
 except ImportError:
     import pip
     pip.main(['install', '/mnt/archgen/tools/helper_scripts/py_helpers/'])
-    import pyPandoraHelper
+    import pyPandoraHelper as pH
 
 VERSION = "1.3.1"
 
@@ -208,57 +209,50 @@ def files_are_consistent(mqc_data, mqc_html, skip_check=False):
         return skip_check
     return True
 
-def read_eager_input_table(file_path):
+def read_eager_tsv(file_path) -> map:
     '''
-    Creates dictionaries with all the possible combinations of the columns in the given file.
+    Reads the contents of an eager input TSV into a dictionary with the column names as keys.
     '''
     l = file_path.readlines()
     headers = l[0].strip().split('\t')
     return map(lambda row: dict(zip(headers, row.split('\t'))), l[1:])
 
-import glob
-
-def dict_data(path='./', columns=[]):
+def get_eager_tsv_data(path: str ='', columns: List[str] = []) -> Union[Dict[str, Dict[str, str]], None]:
     '''
-    Asks for input from the user. The input should be a directory for a folder and any number of the words from 
-        the allowed_word list.
-    
-    A \\*.tsv is always added automatically at the end of the given directory, so that only .tsv files 
-        will be searched for, but it should also be taken into consideration when providing the directory 
-        for the folder by the user.
-    
-    All of the .tsv files in the folder are read.
-
-    This function calls the function above to create a dictionary out of the .tsv files of the given folder 
-        and then prints a list with all the requested dictionaries (could be just one or could be multiple).
-
-    The requested dictionary will always have as keys the data from the Library_ID column of the .tsv files 
-        and as correspoding values the data of the column which titled with the word provided by the user
-        (one of the words in the allowed_word list).
-
-    If the user provides multiple words, a dictionary will be created for each of the corresponding columns.
+    Reads the contents of an eager input TSV and returns a dictionary with the Library_ID as key a
+    dictionary containing the requested column and values as values.
     '''
-    allowed_words = {"Sample_Name", "Lane", "Colour_Chemistry", "SeqType", "Organism", "Strandedness", 
-                        "UDG_Treatment", "R1", "R2", "BAM"}
-    if all(word in allowed_words for word in columns):
-        pattern = path + '*.tsv'
-        p = glob.glob(pattern)
-        print(pattern) # Prints the whole of the provided pattern. Helpful to identify a problem caused by problematic directory input
-        asked_dict = {}
-        if not p:
-            print("No .tsv files found in the specified folder.") # Returns an error message if there is an issue with the creation of p
-            return
-        
-        asked_dict = [{} for _ in columns]  # Create a list of empty dictionaries for each requested column
-        for file_path in p:
-            with open(file_path, 'r') as f: 
-                    for row in read_eager_input_table(f): # Calls the above function
-                        if "Library_ID" in row: # This part could be skipped but eh, whatever
-                            key = row["Library_ID"]
-                            for idx, col in enumerate(columns):
-                                asked_dict[idx][key] = row[col]
-                            
-        print(asked_dict)
+    ## Check that path is a file and exists
+    if not os.path.isfile(path):
+        print(f"File {path} not found. Exiting.")
+        return None
+    
+    ## Remove any column names that are not allowed
+    ##  Note: Lane, Colour_Chemistry, SeqType columns do not make much sense to collect when dealing with library-level results.
+    allowed_column_requests = ["Sample_Name", "Lane", "Colour_Chemistry", "SeqType", "Organism", "Strandedness", 
+                        "UDG_Treatment", "R1", "R2", "BAM"]
+    collect_me = []
+    for col in columns:
+        if col not in allowed_column_requests:
+            print(f"Column name {col} is not allowed. Skipping.")
+        else:
+            collect_me.append(col)
+    
+    ## If no columns were requested, return None
+    if not collect_me:
+        print("No columns were requested. Exiting.")
+        return None
+    
+    else:
+        collected_library_stats = {}
+        with open(path, 'r') as f:
+            for row in read_eager_tsv(f):
+                row_results = {}
+                for col in collect_me:
+                    row_results[col] = row[col]
+                ## This will always overwrite later entries with the same Library_ID, but that is fine for now.
+                collected_library_stats[row["Library_ID"]] = row_results
+        return collected_library_stats
 
 def main():
     ## Column order same as old script.
@@ -309,6 +303,8 @@ def main():
         "Nuclear_contamination_M2_ML_Error": "nuc_cont_m2_ml_se",
         "Nuclear_contamination_M2_MOM": "nuc_cont_m2_mom_est",
         "Nuclear_contamination_M2_MOM_Error": "nuc_cont_m2_mom_se",
+        "UDG_Treatment": "UDG_Treatment",
+        "Strandedness": "Strandedness",
     }
 
     parser = argparse.ArgumentParser(
@@ -374,7 +370,7 @@ def main():
 
     ## Read in list of individuals
     with open(args.input, "r") as f:
-        individuals = f.read().splitlines()
+        individuals = [pH._remove_suffix(_) for _ in f.read().splitlines()]
         print(
             "Found {} individuals in input file.".format(len(individuals)), file=sys.stderr
         )
@@ -385,7 +381,7 @@ def main():
     for ind in individuals:
         ## Set input file path
         mqc_data = "{}/{}/{}/{}/multiqc/multiqc_data/multiqc_data.json".format(
-            args.root_output_path, args.analysis_type, pyPandoraHelper.get_site_id(ind), ind
+            args.root_output_path, args.analysis_type, pH.get_site_id(ind), ind
         )
 
         ## Infer path to MQC report
@@ -394,9 +390,9 @@ def main():
         )
 
         ## Infer path to nf-core/eager input TSV
-        ##  Making the assumption that this is in the same directory as the root_output_path
+        ##  Making the assumption that the eager_inputs and eager_outputs are in the same directory as the root_output_path
         tsv_path = "{}/../eager_inputs/{}/{}/{}/{}.tsv".format(
-            args.root_output_path, args.analysis_type, pyPandoraHelper.get_site_id(ind), ind, ind
+            args.root_output_path, args.analysis_type, pH.get_site_id(ind), ind, ind
         )
 
         ## Get stats
@@ -404,7 +400,7 @@ def main():
             ## First, ensure the MQC data are consistent with the report
             if files_are_consistent(mqc_data, report_path, args.skip_check):
                 collected_stats.update(get_individual_library_stats(mqc_data))
-                ## TODO Read eager input TSV and add attributes to the collected stats
+                collected_stats.update(get_eager_tsv_data(tsv_path, ["UDG_Treatment", "Strandedness"]))
             else:
                 print(
                     f"WARNING: There is a large difference in the creation time between the MultiQC data file '{mqc_data}' and the corresponding HTML '{report_path}'. Skipping.",
