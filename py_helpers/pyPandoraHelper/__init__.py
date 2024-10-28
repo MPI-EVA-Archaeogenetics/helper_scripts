@@ -1,5 +1,6 @@
 __version__ = "0.1.0"
-from py_helpers.pyPandoraHelper.pyPandoraHelper import (
+from pyPandoraHelper.pyPandoraHelper import (
+  _remove_suffix,
   get_site_id,
   get_ind_id,
   get_sample_id,
