@@ -11,8 +11,7 @@ except ImportError:
     pip.main(['install', '/mnt/archgen/tools/helper_scripts/py_helpers/'])
     import pyPandoraHelper as pH
 
-VERSION = "1.3.1"
-
+VERSION = "1.4.0"
 
 def get_individual_library_stats(mqc_data):
     ## Read json file, and combine relevant sample and library stats into a dictionary
@@ -189,11 +188,7 @@ def timestamp_diff_in_sec(file1, file2):
     for f in [file1, file2]:
         ## Check that the files indeed exist
         if not os.path.exists(f) or not os.path.isfile(f):
-            print(
-                f"Required file {f} not found! Results for this sample might be corrupted.",
-                file=sys.stderr,
-            )
-            return 1_000_000  ## Return a large number to indicate that the files are missing
+            raise FileNotFoundError
 
     timestamp1 = os.path.getmtime(file1)
     timestamp2 = os.path.getmtime(file2)
@@ -400,7 +395,10 @@ def main():
             ## First, ensure the MQC data are consistent with the report
             if files_are_consistent(mqc_data, report_path, args.skip_check):
                 collected_stats.update(get_individual_library_stats(mqc_data))
-                collected_stats.update(get_eager_tsv_data(tsv_path, ["UDG_Treatment", "Strandedness"]))
+                ## Read in eager input TSV data and add to the collected stats
+                tsv_dat = get_eager_tsv_data(tsv_path, ["UDG_Treatment", "Strandedness"])
+                for library in tsv_dat:
+                    collected_stats[library].update(tsv_dat[library])
             else:
                 print(
                     f"WARNING: There is a large difference in the creation time between the MultiQC data file '{mqc_data}' and the corresponding HTML '{report_path}'. Skipping.",
