@@ -7,8 +7,8 @@ from typing import List, Dict, Union
 try:
     import pyPandoraHelper as pH
 except ImportError:
-    import pip
-    pip.main(['install', '/mnt/archgen/tools/helper_scripts/py_helpers/'])
+    print("Installing required package 'pyPandoraHelper'", file=sys.stderr)
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "/mnt/archgen/tools/helper_scripts/py_helpers/"])
     import pyPandoraHelper as pH
 
 VERSION = "1.4.0"
