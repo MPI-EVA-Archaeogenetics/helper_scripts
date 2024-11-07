@@ -47,5 +47,3 @@ In cases where there is more than one library for a sample, any sample-level sta
 The script will collect TF data by default. This behaviour can be changed by specifying `-a SG`, to instead collect SG data.
 
 As a quick check that the results being loaded are up to date, the script will check that the MultiQC output files were created within a minute of each other. If the script detects that the output files are not consistent, it will skip the results from that run. This behaviour can be disabled by specifying `--skip_check`. This is only recommended if you know why the check failed to begin with, as you might otherwise be incorporating outdated results.
-
-The old shell script `collect_results.sh` is still available, but is deprecated and will be removed in a future version. It is recommended to use the new Python script instead as it is faster and is immune to issues arising from inconsistent column ordering in the general stats table across runs.
