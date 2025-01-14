@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.1.0' 
+VERSION = '0.2.0' 
 DESCRIPTION = 'Handling Pandora IDs in python'
 LONG_DESCRIPTION = 'A simple Python package that contains helper functions for handling Pandora IDs'
 
