@@ -1,0 +1,17 @@
+Package: rPandoraHelper
+Type: Package
+Title: Infer Pandora IDs from other IDs
+Version: 0.2.0
+Author: person("Thiseas Christos", "Lamnidis", , "thiseas_christos_lamnidis@eva.mpg.de", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0003-4485-8570"))
+Maintainer: Thiseas Christos Lamnidis <thiseas_christos_lamnidis@eva.mpg.de>
+Description: This is a python package allowing easy conversion of
+    Pandora_IDs to any ID of higher hierarchical level. No queries
+    to Pandora take place, only simple text manipulation, and hence
+    this package cannot tell you if the ID exists.
+License: MIT + file LICENSE
+Encoding: UTF-8
+RoxygenNote: 7.3.1
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
