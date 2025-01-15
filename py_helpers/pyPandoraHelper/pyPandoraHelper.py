@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-VERSION = '0.2.0' 
+VERSION = '0.2.1' 
 
 def _remove_suffix(ind_id: str, keep_ss_suffix: bool = False) -> str:
   '''
@@ -21,11 +21,14 @@ def get_site_id(id: str, keep_ss_suffix: bool = False) -> str:
   This function takes any Pandora_ID and returns the part of it that corresponds to the Site_ID.
   '''
   ## The Site_Id never has a suffix, but the option is provided for consistency.
-  ind_id=get_ind_id(id, keep_ss_suffix)
-  if ind_id.endswith("_ss"):
-    result=ind_id[0:-6]
+  if len(id) < 6 or ( len(id) == 6 and not id[-3:].isdigit()):
+    result=id
   else:
-    result=ind_id[0:-3]
+    ind_id=get_ind_id(id, keep_ss_suffix)
+    if ind_id.endswith("_ss"):
+      result=ind_id[0:-6]
+    else:
+      result=ind_id[0:-3]
   return(result)
 
 def get_ind_id(id: str, keep_ss_suffix: bool = False) -> str:
