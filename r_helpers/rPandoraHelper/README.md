@@ -21,7 +21,9 @@ R --vanilla -e 'install.packages(".", repos = NULL, type = "source")'
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+This is a basic usage example, converting a full sequencing ID including
+the Autorun_eager `_ss` suffix into a its respective Site ID and
+Individual ID:
 
 ``` r
 library(rPandoraHelper)
