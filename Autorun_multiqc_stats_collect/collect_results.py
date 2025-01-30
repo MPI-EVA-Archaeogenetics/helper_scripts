@@ -5,13 +5,21 @@ import sys
 import os
 from typing import List, Dict, Union
 try:
+    import pyEager
+except ImportError:
+    print("Installing required package 'pyEager'", file=sys.stderr)
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "pyEager"])
+    import pyEager
+import pandas as pd
+import numpy as np
+try:
     import pyPandoraHelper as pH
 except ImportError:
     print("Installing required package 'pyPandoraHelper'", file=sys.stderr)
     subprocess.check_call([sys.executable, "-m", "pip", "install", "/mnt/archgen/tools/helper_scripts/py_helpers/"])
     import pyPandoraHelper as pH
 
-VERSION = "1.4.0"
+VERSION = "1.5.0"
 
 def get_individual_library_stats(mqc_data):
     ## Read json file, and combine relevant sample and library stats into a dictionary
@@ -414,6 +422,35 @@ def main():
             skip_count += 1
             continue
         print("Collected stats for individual {}.".format(ind), file=sys.stderr)
+    
+    ## Collect mapdamage results where needed, and include read length distribution info in the output
+    md_results_dirs = []
+    for library in collected_stats:
+        try:
+            if 'mapDamage_mqc-generalstats-mapdamage-mapdamage_3_Prime1' in collected_stats[library]:
+                md_results_dirs.append(
+                    '{}/{}/{}/{}/mapdamage/results_{}_rmdup'.format(
+                        args.root_output_path,
+                        args.analysis_type,
+                        pH.get_site_id(library),
+                        pH.get_ind_id(library),
+                        library
+                        )
+                    )
+        except FileNotFoundError:
+            print("Warning: Could not generate read length distribution information for library: {} ".format(library), file=sys.stderr)
+            continue
+    md_results = pyEager.collect_mapdamage_results(md_results_dirs)
+    for result_folder_name in md_results:
+        try:
+            ## Take the basename of the file, then remove "results_" and "_rmdup" to get the library name
+            library = result_folder_name.split('/')[-1].replace("_rmdup", "").replace("results_", "")
+            collected_stats[library]['mean_read_length']    = md_results[result_folder_name]['summary_stats']['mean_readlength'].iloc[0]
+            collected_stats[library]['median_read_length']  = md_results[result_folder_name]['summary_stats']['median'].iloc[0]
+            collected_stats[library]['read_length_std_dev'] = md_results[result_folder_name]['summary_stats']['std'].iloc[0]
+        except KeyError:
+            print("Warning: Could not incorporate read length distribution information for library: {} ".format(library), file=sys.stderr)
+            continue
 
     ## Print number of skipped individuals to stderr if any
     if skip_count > 0:
