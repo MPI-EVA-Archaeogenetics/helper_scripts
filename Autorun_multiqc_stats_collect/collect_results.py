@@ -20,9 +20,9 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "/mnt/archgen/tools/helper_scripts/py_helpers/"])
     import pyPandoraHelper as pH
 
-VERSION = "1.5.1"
+VERSION = "1.6.0"
 
-def get_individual_library_stats(mqc_data):
+def get_individual_library_stats(mqc_data, main_id_dict=None):
     ## Read json file, and combine relevant sample and library stats into a dictionary
     with open(mqc_data, "r") as json_file:
         data = json.load(json_file)
@@ -69,7 +69,21 @@ def get_individual_library_stats(mqc_data):
         ## Get the sample ID from the library ID, to ensure ss libs get ss sample stats
         ## Use update instead of union to work with python <3.9
         compiled_results = {}
-        compiled_results.update(sample_stats[library.split(".")[0]])
+        ind_id           = pH.get_ind_id(library, keep_ss_suffix=True)
+        ind_id_no_ss     = pH.get_ind_id(library, keep_ss_suffix=False)
+        if ind_id.endswith("_ss"):
+            ind_suffix = "_ss"
+        else:
+            ind_suffix = ""
+        try:
+            compiled_results.update(sample_stats[ind_id])
+        except KeyError as e:
+            if ind_id_no_ss in main_id_dict.keys():
+                compiled_results.update(sample_stats[main_id_dict[ind_id_no_ss]+ind_suffix])
+            else:
+                raise Exception(
+                    f"Unknown sample for library: {library}."
+                ) from e
         compiled_results.update(library_stats[library])
         results[library] = compiled_results
         ## Old implementation using dict union.
@@ -258,6 +272,28 @@ def get_eager_tsv_data(path: str ='', columns: List[str] = []) -> Union[Dict[str
                 collected_library_stats[row["Library_ID"]] = row_results
         return collected_library_stats
 
+def read_main_id_list(file_path: str) -> Dict[str, str]:
+    '''
+    Reads a file with a header and two columns, where the first column is the Pandora Full individual ID and the second column is the Pandora Main individual ID.
+    '''
+    if not os.path.isfile(file_path):
+        print(f"File {file_path} not found. Exiting.")
+        return None
+    if not os.path.exists(file_path):
+        print(f"File {file_path} does not exist. Exiting.")
+        return None
+    
+    main_id_dict = {}
+    with open(file_path, 'r') as f:
+        for line in f:
+            if line.startswith("#") or not line.strip():
+                continue
+            if line.startswith("Full_Individual_Id\tMain_Individual_Id"):
+                continue
+            fields = line.strip().split('\t')
+            main_id_dict[fields[0]] = fields[1]
+    return main_id_dict
+
 def main():
     ## Column order same as old script.
     output_columns = {
@@ -347,6 +383,13 @@ def main():
         action="store_true",
     )
     parser.add_argument(
+        "--main_id_list",
+        metavar="FILE",
+        help="A file with two columns, where the first column is the Pandora Full individual ID and the second column is the Pandora Main individual ID. This is used to map Full IDs to Main IDs.",
+        default="/mnt/archgen/tools/helper_scripts/assets/pandora_tables/pandora_main_ind_id_list.txt",
+        required=False,
+    )
+    parser.add_argument(
         "-H",
         "--header",
         help="Use human-readable header, instead of original MultiQC table header.",
@@ -379,6 +422,9 @@ def main():
             "Found {} individuals in input file.".format(len(individuals)), file=sys.stderr
         )
 
+    ## Read list of main IDs
+    main_id_dict = read_main_id_list(args.main_id_list)
+
     ## Iterate over individuals and collect stats
     collected_stats = {}
     skip_count = 0
@@ -403,7 +449,7 @@ def main():
         try:
             ## First, ensure the MQC data are consistent with the report
             if files_are_consistent(mqc_data, report_path, args.skip_check):
-                collected_stats.update(get_individual_library_stats(mqc_data))
+                collected_stats.update(get_individual_library_stats(mqc_data, main_id_dict))
                 ## Read in eager input TSV data and add to the collected stats
                 tsv_dat = get_eager_tsv_data(tsv_path, ["UDG_Treatment", "Strandedness"])
                 for library in tsv_dat:
