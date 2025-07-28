@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `Data_type` column to the output table, which indicates whether the data is from a shotgun or capture analysis.
 - Add `subprocess` module to the imports, which is used for installing dependencies on first use.
 - Added a `--main_id_list` option to map Full IDs to Main IDs, allowing the script to correctly import library statistics for libraries merged into an individual using the Pandora Main_Individual_Id.
+- Added a CHANGELOG.md file to document changes made to the script.
 
 ### Fixed
 
