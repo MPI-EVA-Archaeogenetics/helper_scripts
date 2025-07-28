@@ -20,9 +20,9 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "/mnt/archgen/tools/helper_scripts/py_helpers/"])
     import pyPandoraHelper as pH
 
-VERSION = "1.6.0"
+VERSION = "1.6.1"
 
-def get_individual_library_stats(mqc_data, main_id_dict=None):
+def get_individual_library_stats(mqc_data : str, data_type: str, main_id_dict : Dict[str,str] = None):
     ## Read json file, and combine relevant sample and library stats into a dictionary
     with open(mqc_data, "r") as json_file:
         data = json.load(json_file)
@@ -64,6 +64,9 @@ def get_individual_library_stats(mqc_data, main_id_dict=None):
             sample_stats[key] = data["report_saved_raw_data"]["multiqc_general_stats"][
                 key
             ]
+    ## Add the same data type (analysis type) to all sample stats
+    for key in sample_stats.keys():
+        sample_stats[key]["Data_type"] = data_type
 
     for library in sample_libraries:
         ## Get the sample ID from the library ID, to ensure ss libs get ss sample stats
@@ -345,6 +348,7 @@ def main():
         "Nuclear_contamination_M2_MOM_Error": "nuc_cont_m2_mom_se",
         "UDG_Treatment": "UDG_Treatment",
         "Strandedness": "Strandedness",
+        "Data_type": "Data_type",
     }
 
     parser = argparse.ArgumentParser(
@@ -449,7 +453,7 @@ def main():
         try:
             ## First, ensure the MQC data are consistent with the report
             if files_are_consistent(mqc_data, report_path, args.skip_check):
-                collected_stats.update(get_individual_library_stats(mqc_data, main_id_dict))
+                collected_stats.update(get_individual_library_stats(mqc_data, args.analysis_type, main_id_dict))
                 ## Read in eager input TSV data and add to the collected stats
                 tsv_dat = get_eager_tsv_data(tsv_path, ["UDG_Treatment", "Strandedness"])
                 for library in tsv_dat:
