@@ -3,6 +3,7 @@ import json
 import argparse
 import sys
 import os
+import subprocess
 from typing import List, Dict, Union
 try:
     import pyEager
@@ -19,7 +20,7 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "/mnt/archgen/tools/helper_scripts/py_helpers/"])
     import pyPandoraHelper as pH
 
-VERSION = "1.5.0"
+VERSION = "1.5.1"
 
 def get_individual_library_stats(mqc_data):
     ## Read json file, and combine relevant sample and library stats into a dictionary
