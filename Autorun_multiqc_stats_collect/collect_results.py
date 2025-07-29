@@ -376,9 +376,9 @@ def main():
     parser.add_argument(
         "-a",
         "--analysis_type",
-        help="Analysis type: capture or shotgun. Options are: SG, TF, RP, RM. Defaults to TF.",
+        help="Analysis type: capture or shotgun. Options are: SG, TF, TM, RP, RM, IM, YC. Defaults to TF.",
         default="TF",
-        choices=["SG", "TF", "RP", "RM"],
+        choices=["SG", "TF", "TM", "RP", "RM", "IM", "YC"],
     )
     parser.add_argument(
         "--skip_check",

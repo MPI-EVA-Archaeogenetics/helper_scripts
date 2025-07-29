@@ -33,8 +33,8 @@ options:
                         Input file with a list of individuals for which capture or shotgun data exists.
   -o OUTPUT, --output OUTPUT
                         Output file with a list of individuals for which capture or shotgun data exists.
-  -a {SG,TF,RP,RM}, --analysis_type {SG,TF,RP,RM}
-                        Analysis type: capture or shotgun. Options are: SG, TF, RP, RM. Defaults to TF.
+  -a {SG,TF,TM,RP,RM,IM,YC}, --analysis_type {SG,TF,TM,RP,RM,IM,YC}
+                        Analysis type: capture or shotgun. Options are: SG, TF, TM, RP, RM, IM, YC. Defaults to TF.
   --skip_check          By default, results from runs where the consistency of the MultiQC output files cannot be verified will be skipped. Use this flag to disable this behaviour. Only recommended if
                         you know why the check failed to begin with.
   --main_id_list FILE   A file with two columns, where the first column is the Pandora Full individual ID and the second column is the Pandora Main individual ID. This is used to map Full IDs to Main
