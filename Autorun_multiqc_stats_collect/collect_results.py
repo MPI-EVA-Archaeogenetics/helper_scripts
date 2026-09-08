@@ -47,7 +47,8 @@ def get_individual_library_stats(
     ## Loop through json file and store relevant stats in dicts
     for key in data["report_saved_raw_data"]["multiqc_general_stats"].keys():
         ## If the key contains a '.', it is a library stat, otherwise it is a sample stat
-        if len(key.split(".")) > 1:
+        ## If the key ends with haplotypecaller, this shoudl be treated as sample-level stats.
+        if len(key.split(".")) > 1 and not key.endswith("haplotypecaller"):
             ## eager 2.5.0 also has split by UDG for some stats. we want to compile these together, as each library can only have one udg treatment.
             ## By splitting by '_udg', we can get the library ID, and then add the attributes to the library dict for both cases.
             try:
@@ -85,6 +86,15 @@ def get_individual_library_stats(
                     sample_stats[key.split("_udg")[0]] = data["report_saved_raw_data"][
                         "multiqc_general_stats"
                     ][key]
+            elif len(key.split(".haplotypecaller")) > 1:
+                try:
+                    sample_stats[key.split(".haplotypecaller")[0]].update(
+                        data["report_saved_raw_data"]["multiqc_general_stats"][key]
+                    )
+                except KeyError:
+                    sample_stats[key.split(".haplotypecaller")[0]] = data[
+                        "report_saved_raw_data"
+                    ]["multiqc_general_stats"][key]
             else:
                 try:
                     sample_stats[key].update(
@@ -97,7 +107,7 @@ def get_individual_library_stats(
     ## Add the same data type (analysis type) to all sample stats
     for key in sample_stats.keys():
         sample_stats[key]["Data_type"] = data_type
-
+    
     for library in sample_libraries:
         ## Get the sample ID from the library ID, to ensure ss libs get ss sample stats
         ## Use update instead of union to work with python <3.9
@@ -122,7 +132,7 @@ def get_individual_library_stats(
         ## Old implementation using dict union.
         ## Use union of attributes to combine dicts. attributes from the library level will overwrite any that exist in the sample level. Should be no overlap, but good to note.
         # results[library] = dict(sample_stats[library.split('.')[0]] | library_stats[library])
-
+    
     ## Standardise column naming across multiqc versions
     results = standardise_column_names(results)
     ## results is a dict of dicts, with the library ID as the key. The value then contains a dict of the combined stats for that library/sample.
@@ -512,7 +522,14 @@ def main():
                     tsv_path, ["UDG_Treatment", "Strandedness"]
                 )
                 for library in tsv_dat:
-                    collected_stats[library].update(tsv_dat[library])
+                    try :
+                        collected_stats[library].update(tsv_dat[library])
+                    except KeyError:
+                        print(
+                            f"Warning: Library '{library}' was found in the pipeline input TSV, but not the MultiQC output. This likely means that additional processing for individual '{ind}' is imminent. Collecting the existing results, and ignoring missing libraries for now.",
+                            file=sys.stderr,
+                        )
+                        continue
             else:
                 print(
                     f"WARNING: There is a large difference in the creation time between the MultiQC data file '{mqc_data}' and the corresponding HTML '{report_path}'. Skipping.",
@@ -582,7 +599,17 @@ def main():
                 file=sys.stderr,
             )
             continue
-    md_results = pyEager.collect_mapdamage_results([_ for _ in md_results_dirs if os.path.exists(_)])
+    md_results = {}
+    for md_dir in md_results_dirs:
+        if os.path.exists(md_dir):
+            print(
+                "Collecting read length distribution information from mapdamage results in: {}".format(
+                    md_dir
+                ),
+                file=sys.stderr,
+            )
+            md_results.update(pyEager.collect_mapdamage_results([md_dir]))
+    # md_results = pyEager.collect_mapdamage_results([_ for _ in md_results_dirs if os.path.exists(_)])
     for result_folder_name in md_results:
         try:
             ## Take the basename of the file, then remove "results_" and "_rmdup" to get the library name
