@@ -1,5 +1,7 @@
 # py_helpers
 
+A simple Python package that contains helper functions for handling Pandora IDs
+
 This directory stores various helper packages to assist in accessing and working with departmental resources.
 
 The following packages are currently available:
