@@ -30,7 +30,7 @@ except ImportError:
     )
     import pyPandoraHelper as pH
 
-VERSION = "1.6.3"
+VERSION = "1.6.4"
 
 
 def get_individual_library_stats(
@@ -582,7 +582,7 @@ def main():
                 file=sys.stderr,
             )
             continue
-    md_results = pyEager.collect_mapdamage_results(md_results_dirs)
+    md_results = pyEager.collect_mapdamage_results([_ for _ in md_results_dirs if os.path.exists(_)])
     for result_folder_name in md_results:
         try:
             ## Take the basename of the file, then remove "results_" and "_rmdup" to get the library name

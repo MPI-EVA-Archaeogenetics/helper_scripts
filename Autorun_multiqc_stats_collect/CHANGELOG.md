@@ -5,6 +5,16 @@ All notable changes to collect_results.py will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.6.4 - 2026-06-15
+
+### Added
+
+### Fixed
+
+- Added a path exists check for mapdamage results folders before trying to collect results from them, which should prevent the script from crashing when mapdamage results are missing for a library. This happens for older data that has damageprofiler results, processed before mapdamage was added to the pipeline.
+
+### Removed
+
 ## 1.6.3 - 2026-04-06
 
 ### Added
