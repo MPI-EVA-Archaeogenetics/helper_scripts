@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyPandoraHelper"
+version = "0.2.1"
+description = "Handling Pandora IDs in python"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    { name = "Thiseas C. Lamnidis", email = "thiseas_christos_lamnidis@eva.mpg.de" },
+]
+keywords = ["python", "pandora"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Education",
+    "Programming Language :: Python :: 3",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+]
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["pyPandoraHelper*"]
