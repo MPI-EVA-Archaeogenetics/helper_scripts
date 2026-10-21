@@ -1,4 +1,4 @@
-#!bin/bash
+#!/usr/bin/env bash
 
 v="1.0.0"
 
