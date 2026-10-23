@@ -50,8 +50,8 @@ fi
 
 #print help if sampleList is -h or $1 or $2 is empty
 if [ "$sampleList" == "-h" ] || [ -z "$sampleList" ] || [ -z "$tag" ]; then
-    echo "Usage: $0 <sample_list.txt> <output_tag>"
-    echo "Example: $0 samples_to_check.txt report_$(date +%Y%m%d)"
+    echo "Usage: $0 <sample_list.txt> <output_tag> <IBD_version>"
+    echo "Example: $0 samples_to_check.txt report_$(date +%Y%m%d) v13.0"
     exit 1
 fi
 
