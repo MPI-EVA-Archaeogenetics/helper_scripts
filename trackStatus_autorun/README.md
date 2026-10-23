@@ -20,6 +20,7 @@ TFP003.A0101.SG1.1
 ```
 
 `-o` is the output prefix (any)
+
 `-i` the IBD release version to check. If not specified, the latest one will be assumed.
 
 
@@ -27,8 +28,7 @@ TFP003.A0101.SG1.1
 
 Example of an output from the command: 
 ```
-$ bash processingChecker.sh -l list_exa
-mple -o example -i v14.0
+$ bash processingChecker.sh -l list_example -o example -i v14.0
 Processing sample TFP002.A0101.TF1.1 (6/6))
 Report generated: example.tsv
 ```
@@ -56,9 +56,21 @@ Coverage_inATLAS: number of 1240k positions covered in the ATLAS merged bam file
 Coverage_Autorun: highest number of 1240k positions covered among the Autorun_eager deduplicated bam files
 Imputed: YES/NO the sample was picked up and fully run through GLIMPSE imputation
 Imputation_date: yyyy-mm-dd when the sample's imputated vcf file was last updated
+GTL_output_published: YES/NO the imputation file was published in Autorun's "GTL_output" directory
+GTL_output_date: yyyy-mm-dd when the sample's imputated vcf file was sym-linked to the Autorun directory
+IBD_v14.0: YES/NO the sample is included in the given version of the IBD run
+InMasterVCF_v14.0: YES/NO the sample was fetched for the input file of the specified IBD run 
+covATLAS-covAutorun: difference between Coverage_inATLAS an Coverage_Autorun
 ```
+
+-----
 
 ## TIPS
 This tool's main function is to check from the user's side if a sample correctly run through the departmental pipeline step. To do so, two possible checks can be applied: 
 - If the order of the updates is correct (imputation youngest, Autorun_eager oldest), then all the sequencing outputs for the given sample should have be included in the latest imputation
-- If the coverages are comparable between the estimations from the ATLAS pipeline and Autorun_eager, and the imputation date is more recent than the ATLAS processing date, then possibly all the genetic data should have been included
+- If the coverages are comparable between the estimations from the ATLAS pipeline and Autorun_eager (check for values below 0 in "covATLAS-covAutorun", e.g. < -150.000 ), and the imputation date is more recent than the ATLAS processing date, then possibly all the genetic data should have been included
+
+-----
+
+### Planned implementations 
+- "frac_gp" field, to indicate the metric on the basis of which samples are included in the IBD-run
