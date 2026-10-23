@@ -8,8 +8,8 @@ tag=""
 IBDversion=""
 
 usage() {
-    echo "Usage: $0 -l <sample_list.txt> -n <output_tag> [-i <IBD_version>]"
-    echo "       $0 --sampleList <sample_list.txt> --tag <output_tag> [--IBDversion <IBD_version>]"
+    echo "Usage: $0 -l <sample_list.txt> -o <output_tag> [-i <IBD_version>]"
+    echo "       $0 --sampleList <sample_list.txt> --out-prefix <output_tag> [--IBDversion <IBD_version>]"
 }
 
 if [[ "$1" == "meow" ]]; then
