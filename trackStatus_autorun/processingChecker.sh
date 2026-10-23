@@ -56,12 +56,13 @@ for sample in $(cat /mnt/archgen/DAG_GL/list_seqs.txt | grep -f $sampleList); do
     progress=$((progress + 1))
     printf "\rProcessing sample %s (%d/%d)" "$sample" "$progress" "$total"
 
-    basename=$(echo $sample | cut -f 1 -d ".")
-    TLC=${basename:0:-3}
-    library=$(echo $sample | cut -f 2 -d ".")
-    cap=$(echo $sample | cut -f 3 -d ".")
-    captype=$(echo $sample | cut -f 3 -d "." | cut -c 1,2)
-    seq=$(echo $sample | cut -f 4 -d ".")
+    basename=$(${pH} -g ind_id ${sample})
+    TLC=$(${pH} -g site_id ${sample})
+    library=$(${pH} -g library_id ${sample} | cut -f 2 -d ".")
+    cap=$(${pH} -g capture_id ${sample} | cut -f 3 -d ".")
+    captype=$(${pH} -g capture_id ${sample} | cut -f 3 -d "." | cut -c 1,2)
+    seq=$(${pH} -g sequencing_id ${sample} | cut -f 4 -d ".")
+
 
     #specify pandora table to use
     if [ $captype == "SG" ]; then table="Human_Shotgun.txt"
