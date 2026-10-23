@@ -5,10 +5,22 @@ v="1.0.0"
 #get options
 sampleList=$1
 tag=$2
+IBDversion=$3
+
+#if IBDversion is empty, se it to the latest one 
+if [ -z "$IBDversion" ]; then
+    IBDversion=$(ls /mnt/archgen/ibd_release/ | grep -E '^v[0-9]+\.[0-9]+$' | sort -V | tail -1)
+    echo "No IBD version provided. Using latest version: $IBDversion"
+fi
+
+#if IBDversion does not start with v, add it
+if [[ ! $IBDversion =~ ^v ]]; then
+    IBDversion="v${IBDversion}"
+fi
+
 autoResultsDirs=/mnt/archgen/Autorun/Results
 autoEagerDir=/mnt/archgen/Autorun_eager/eager_outputs
-IBDdir=/mnt/archgen/ibd_release/v13.0
-IBDversion=13.0
+IBDdir=/mnt/archgen/ibd_release/${IBDversion}
 pH="/mnt/archgen/tools/helper_scripts/py_helpers/pyPandoraHelper/pyPandoraHelper.py"
 
 #if $1 is -v or --version, print version and exit
@@ -16,6 +28,13 @@ if [ "$sampleList" == "-v" ] || [ "$sampleList" == "--version" ]; then
     echo "processingChecker.sh version ${v}"
     exit 0
 fi
+
+#if IBD directory does not exist, print error and exit
+if [ ! -d "$IBDdir" ]; then
+    echo "Error: IBD directory $IBDdir does not exist. Please check the IBD version provided."
+    exit 1
+fi
+
 
 #if $1 is "meow" print a cat and exit
 if [ "$sampleList" == "meow" ]; then
@@ -46,7 +65,7 @@ cat /mnt/archgen/Autorun/Pandora_Tables/{Human_RM.txt,Human_RP.txt,Human_Shotgun
 
 
 #make header
-echo -e "Sample\tAutorun_Processed\tAutorun_date\tDeduplication_date\tDateLastMultiqc\tATLAS\tATLAS_lastMod\tCoverage_inATLAS\tCoverage_Autorun\tImputed\tImputation_date\tGTL_output_published\tGTL_output_date\tIBD_v${IBDversion}\tInMasterVCF_v${IBDversion}\tcovATLAS-covAutorun" > $tag.tsv
+echo -e "Sample\tAutorun_Processed\tAutorun_date\tDeduplication_date\tDateLastMultiqc\tATLAS\tATLAS_lastMod\tCoverage_inATLAS\tCoverage_Autorun\tImputed\tImputation_date\tGTL_output_published\tGTL_output_date\tIBD_${IBDversion}\tInMasterVCF_${IBDversion}\tcovATLAS-covAutorun" > $tag.tsv
 
 #Run throgh the scripts
 progress=0
@@ -57,7 +76,7 @@ for sample in $(cat /mnt/archgen/DAG_GL/list_seqs.txt | grep -f $sampleList); do
     printf "\rProcessing sample %s (%d/%d)" "$sample" "$progress" "$total"
 
     basename=$(${pH} -g ind_id ${sample})
-    TLC=$(${pH} -g site_id ${sample})
+    site=$(${pH} -g site_id ${sample})
     library=$(${pH} -g library_id ${sample} | cut -f 2 -d ".")
     cap=$(${pH} -g capture_id ${sample} | cut -f 3 -d ".")
     captype=$(${pH} -g capture_id ${sample} | cut -f 3 -d "." | cut -c 1,2)
@@ -76,18 +95,18 @@ for sample in $(cat /mnt/archgen/DAG_GL/list_seqs.txt | grep -f $sampleList); do
     dateAutorunProcessed=$(date -r $AutorunDir/${sample}.bam +%Y-%m-%d 2>/dev/null)
 
     #Check if deduplication, genotyping and multiqc steps are done
-    mostRecDedup=$(ls ${autoEagerDir}/${captype}/${TLC}/${basename}/deduplication/${basename}*/${basename}*rmdup.bam  2>/dev/null | tail -1)
+    mostRecDedup=$(ls ${autoEagerDir}/${captype}/${site}/${basename}/deduplication/${basename}*/${basename}*rmdup.bam  2>/dev/null | tail -1)
     dateLastDedup=$(date -r $mostRecDedup +%Y-%m-%d)
-    mostRecGeno=$(ls ${autoEagerDir}/${captype}/${TLC}/${basename}/genotyping/pileupcaller*.geno \
+    mostRecGeno=$(ls ${autoEagerDir}/${captype}/${site}/${basename}/genotyping/pileupcaller*.geno \
                         -tr 2>/dev/null | tail -1)
     dateLastGeno=$(date -r $mostRecGeno +%Y-%m-%d 2>/dev/null)
-    mostRecGenoPresent=$(ls ${autoEagerDir}/${captype}/${TLC}/${basename}/genotyping/pileupcaller*.geno 2>/dev/null | wc -l)
-    coverageAutorun=$(cat ${autoEagerDir}/${captype}/${TLC}/${basename}/genotyping/*_coverage.txt 2>/dev/null \
+    mostRecGenoPresent=$(ls ${autoEagerDir}/${captype}/${site}/${basename}/genotyping/pileupcaller*.geno 2>/dev/null | wc -l)
+    coverageAutorun=$(cat ${autoEagerDir}/${captype}/${site}/${basename}/genotyping/*_coverage.txt 2>/dev/null \
                     | awk '{print $2}' | grep -v "SNPs_Covered" \
                     | tr "\n" "\," | sed 's/\,$//g')
     higherCoverage=$(echo $coverageAutorun | tr "," "\n" | sort -n | tail -1)
-    multiqcPresent=$(ls ${autoEagerDir}/${captype}/${TLC}/${basename}/multiqc/multiqc_report.html 2>/dev/null | wc -l)
-    dateLastMultiqc=$(date -r ${autoEagerDir}/${captype}/${TLC}/${basename}/multiqc/multiqc_report.html +%Y-%m-%d 2>/dev/null)
+    multiqcPresent=$(ls ${autoEagerDir}/${captype}/${site}/${basename}/multiqc/multiqc_report.html 2>/dev/null | wc -l)
+    dateLastMultiqc=$(date -r ${autoEagerDir}/${captype}/${site}/${basename}/multiqc/multiqc_report.html +%Y-%m-%d 2>/dev/null)
 
     #check if the genotyping pipeline picked the sample up
     GTfilePres=$(ls /mnt/archgen/DAG_GL/MLVCFS/${basename}/${basename}_MaximumLikelihood.vcf.gz 2>/dev/null | wc -l)
@@ -103,12 +122,12 @@ for sample in $(cat /mnt/archgen/DAG_GL/list_seqs.txt | grep -f $sampleList); do
     #check if the imputation pipeline picked the sample up
     impFilePres=$(ls /mnt/archgen/DAG_imputation/IMPOUT/${basename}/${basename}_imputed.vcf.gz 2>/dev/null | wc -l)
     impLastMod=$(date -r /mnt/archgen/DAG_imputation/IMPOUT/${basename}/${basename}_imputed.vcf.gz +%Y-%m-%d 2>/dev/null)
-    impPublished=$(ls /mnt/archgen/Autorun_eager/eager_outputs/TF/${TLC}/${basename}/GTL_output/${basename}_imputed.vcf.gz 2>/dev/null | wc -l)
-    impPubDate=$(date -r /mnt/archgen/Autorun_eager/eager_outputs/TF/${TLC}/${basename}/GTL_output/${basename}_imputed.vcf.gz +%Y-%m-%d 2>/dev/null)
+    impPublished=$(ls /mnt/archgen/Autorun_eager/eager_outputs/TF/${site}/${basename}/GTL_output/${basename}_imputed.vcf.gz 2>/dev/null | wc -l)
+    impPubDate=$(date -r /mnt/archgen/Autorun_eager/eager_outputs/TF/${site}/${basename}/GTL_output/${basename}_imputed.vcf.gz +%Y-%m-%d 2>/dev/null)
 
     #check if it was included in the latest IBD release and in the master VCF
     inIBD=$(grep $basename $IBDdir/iid.ibd.meta.*.unique.tsv 2>/dev/null| wc -l)
-    inMasterVCF=$(bcftools view -h /mnt/archgen/ibd_release/data_int/vcf.1240.master/v${IBDversion}/ch21.vcf.gz | grep ${basename} | wc -l)
+    inMasterVCF=$(bcftools view -h /mnt/archgen/ibd_release/data_int/vcf.1240.master/${IBDversion}/ch21.vcf.gz | grep ${basename} | wc -l)
     frac_gp=$(cat $IBDdir/iid.ibd.meta.*.unique.tsv 2>/dev/null | grep $basename | cut -f 2)
 
     #check difference in coverage between GTL and Autorun
