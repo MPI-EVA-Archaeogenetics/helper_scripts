@@ -9,6 +9,7 @@ autoResultsDirs=/mnt/archgen/Autorun/Results
 autoEagerDir=/mnt/archgen/Autorun_eager/eager_outputs
 IBDdir=/mnt/archgen/ibd_release/v13.0
 IBDversion=13.0
+pH="/mnt/archgen/tools/helper_scripts/py_helpers/pyPandoraHelper/pyPandoraHelper.py"
 
 #if $1 is -v or --version, print version and exit
 if [ "$sampleList" == "-v" ] || [ "$sampleList" == "--version" ]; then
