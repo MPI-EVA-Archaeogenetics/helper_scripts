@@ -3,9 +3,90 @@
 v="1.0.0"
 
 #get options
-sampleList=$1
-tag=$2
-IBDversion=$3
+sampleList=""
+tag=""
+IBDversion=""
+
+usage() {
+    echo "Usage: $0 -l <sample_list.txt> -n <output_tag> [-i <IBD_version>]"
+    echo "       $0 --sampleList <sample_list.txt> --tag <output_tag> [--IBDversion <IBD_version>]"
+}
+
+if [[ "$1" == "meow" ]]; then
+    echo "    /\_____/\ "
+    echo "   /  o   o  \ "
+    echo "  ( ==  ^  == ) "
+    echo "   )         ( "
+    echo "  (           ) "
+    echo " ( (  )   (  ) ) "
+    echo "(__(__)___(__)__) "
+    exit 0
+fi
+
+while (($#)); do
+    case "$1" in
+        -l|--sampleList|--sample-list)
+            if (($# < 2)); then
+                echo "Error: $1 requires a value." >&2
+                usage >&2
+                exit 1
+            fi
+            sampleList=$2
+            shift 2
+            ;;
+        -o|--out-prefix)
+            if (($# < 2)); then
+                echo "Error: $1 requires a value." >&2
+                usage >&2
+                exit 1
+            fi
+            tag=$2
+            shift 2
+            ;;
+        -i|--IBDversion|--ibd-version)
+            if (($# < 2)); then
+                echo "Error: $1 requires a value." >&2
+                usage >&2
+                exit 1
+            fi
+            IBDversion=$2
+            shift 2
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        -v|--version)
+            echo "processingChecker.sh version ${v}"
+            exit 0
+            ;;
+        -*)
+            echo "Error: unknown option $1" >&2
+            usage >&2
+            exit 1
+            ;;
+        *)
+            if [[ -z "$sampleList" ]]; then
+                sampleList=$1
+            elif [[ -z "$tag" ]]; then
+                tag=$1
+            elif [[ -z "$IBDversion" ]]; then
+                IBDversion=$1
+            else
+                echo "Error: unexpected argument $1" >&2
+                usage >&2
+                exit 1
+            fi
+            shift
+            ;;
+    esac
+done
+
+if [[ -z "$sampleList" || -z "$tag" ]]; then
+    usage >&2
+    exit 1
+fi
+
 
 #if IBDversion is empty, se it to the latest one 
 if [ -z "$IBDversion" ]; then
@@ -23,38 +104,11 @@ autoEagerDir=/mnt/archgen/Autorun_eager/eager_outputs
 IBDdir=/mnt/archgen/ibd_release/${IBDversion}
 pH="/mnt/archgen/tools/helper_scripts/py_helpers/pyPandoraHelper/pyPandoraHelper.py"
 
-#if $1 is -v or --version, print version and exit
-if [ "$sampleList" == "-v" ] || [ "$sampleList" == "--version" ]; then
-    echo "processingChecker.sh version ${v}"
-    exit 0
-fi
-
 #if IBD directory does not exist, print error and exit
 if [ ! -d "$IBDdir" ]; then
     echo "Error: IBD directory $IBDdir does not exist. Please check the IBD version provided."
     exit 1
 fi
-
-
-#if $1 is "meow" print a cat and exit
-if [ "$sampleList" == "meow" ]; then
-echo "    /\_____/\ "
-echo "   /  o   o  \ "
-echo "  ( ==  ^  == ) "
-echo "   )         ( "
-echo "  (           ) "
-echo " ( (  )   (  ) ) "
-echo "(__(__)___(__)__) "
-exit 0
-fi
-
-#print help if sampleList is -h or $1 or $2 is empty
-if [ "$sampleList" == "-h" ] || [ -z "$sampleList" ] || [ -z "$tag" ]; then
-    echo "Usage: $0 <sample_list.txt> <output_tag> <IBD_version>"
-    echo "Example: $0 samples_to_check.txt report_$(date +%Y%m%d) v13.0"
-    exit 1
-fi
-
 
 
 cat /mnt/archgen/Autorun/Pandora_Tables/{Human_RM.txt,Human_RP.txt,Human_Shotgun.txt,Human_TM.txt,Human_1240k.txt} \
