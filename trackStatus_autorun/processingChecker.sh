@@ -23,7 +23,11 @@ if [[ "$1" == "meow" ]]; then
     exit 0
 fi
 
-while (($#)); do
+## Parse CLI args. This will parse the args cleanly so that a user can provide them with/without spaces etc, but the script will still work it out.
+TEMP=`getopt -q -o l:o:i:hv --long sampleList:,out-prefix:,IBDversion:,help,version -n "$0" -- "$@"`
+eval set -- "$TEMP"
+
+while true; do
     case "$1" in
         -l|--sampleList|--sample-list)
             if (($# < 2)); then
@@ -77,7 +81,7 @@ while (($#)); do
                 usage >&2
                 exit 1
             fi
-            shift
+            break
             ;;
     esac
 done
