@@ -24,7 +24,7 @@ if [[ "$1" == "meow" ]]; then
 fi
 
 ## Parse CLI args. This will parse the args cleanly so that a user can provide them with/without spaces etc, but the script will still work it out.
-TEMP=`getopt -q -o l:o:i:hv --long sampleList:,out-prefix:,IBDversion:,help,version -n "$0" -- "$@"`
+TEMP=`getopt -q -o l:o:i:hv --long sample-list:,sampleList:,out-prefix:,IBDversion:,ibd-version,help,version -n "$0" -- "$@"`
 eval set -- "$TEMP"
 
 while true; do
