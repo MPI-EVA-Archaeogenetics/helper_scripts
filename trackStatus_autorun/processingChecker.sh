@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-v="1.0.0"
+v="1.0.1"
 
 #get options
 sampleList=""
@@ -64,6 +64,7 @@ while true; do
             echo "processingChecker.sh version ${v}"
             exit 0
             ;;
+        --) break ;;
         -*)
             echo "Error: unknown option $1" >&2
             usage >&2
@@ -127,19 +128,21 @@ echo -e "Sample\tAutorun_Processed\tAutorun_date\tDeduplication_date\tDateLastMu
 
 #Run throgh the scripts
 progress=0
-total=$(grep -f $sampleList /mnt/archgen/DAG_GL/list_seqs.txt| wc -l)
+inds_in_GL=($(sed 's/_ss//g' $sampleList | grep -f - /mnt/archgen/DAG_GL/list_seqs.txt))
+total=${#inds_in_GL[@]}
 
-for sample in $(cat /mnt/archgen/DAG_GL/list_seqs.txt | grep -f $sampleList); do
+for iid in ${inds_in_GL[@]}; do
     progress=$((progress + 1))
-    printf "\rProcessing sample %s (%d/%d)" "$sample" "$progress" "$total"
 
-    basename=$(${pH} -g ind_id ${sample})
-    site=$(${pH} -g site_id ${sample})
-    library=$(${pH} -g library_id ${sample} | cut -f 2 -d ".")
-    cap=$(${pH} -g capture_id ${sample} | cut -f 3 -d ".")
-    captype=$(${pH} -g capture_id ${sample} | cut -f 3 -d "." | cut -c 1,2)
-    seq=$(${pH} -g sequencing_id ${sample} | cut -f 4 -d ".")
+    basename=$(${pH} -g ind_id ${iid})
+    site=$(${pH} -g site_id ${iid})
+    ind=$(${pH} -g ind_id ${iid}) ## deals with _ss suffixes if any.
+    library=$(${pH} -g library_id ${iid} | cut -f 2 -d ".")
+    cap=$(${pH} -g capture_id ${iid} | cut -f 3 -d ".")
+    captype=$(${pH} -g capture_id ${iid} | cut -f 3 -d "." | cut -c 1,2)
+    seq=$(${pH} -g sequencing_id ${iid} | cut -f 4 -d ".")
 
+    printf "\rProcessing sample %s (%d/%d)" "$ind" "$progress" "$total"
 
     #specify pandora table to use
     if [ $captype == "SG" ]; then table="Human_Shotgun.txt"
@@ -148,9 +151,9 @@ for sample in $(cat /mnt/archgen/DAG_GL/list_seqs.txt | grep -f $sampleList); do
     fi
 
     #check if processed by Autorun
-    AutorunDir=$(grep $sample /mnt/archgen/Autorun/Pandora_Tables/$table | cut -f2)
-    AutorunProcessed=$(ls $AutorunDir/${sample}.bam 2>/dev/null | wc -l)
-    dateAutorunProcessed=$(date -r $AutorunDir/${sample}.bam +%Y-%m-%d 2>/dev/null)
+    AutorunDir=$(grep $ind /mnt/archgen/Autorun/Pandora_Tables/$table | cut -f2)
+    AutorunProcessed=$(ls $AutorunDir/${ind}.bam 2>/dev/null | wc -l)
+    dateAutorunProcessed=$(date -r $AutorunDir/${ind}.bam +%Y-%m-%d 2>/dev/null)
 
     #Check if deduplication, genotyping and multiqc steps are done
     mostRecDedup=$(ls ${autoEagerDir}/${captype}/${site}/${basename}/deduplication/${basename}*/${basename}*rmdup.bam  2>/dev/null | tail -1)
@@ -207,7 +210,7 @@ for sample in $(cat /mnt/archgen/DAG_GL/list_seqs.txt | grep -f $sampleList); do
     # done
 
 
-    echo -e "${sample}\t${AutorunProcessed}\t${dateAutorunProcessed}\t${dateLastDedup}\t${dateLastMultiqc}\t${GTfilePres}\t${GTlastMod}\t${coverageGTL}\t${higherCoverage}\t${impFilePres}\t${impLastMod}\t${impPublished}\t${impPubDate}\t${inIBD}\t${inMasterVCF}\t${covDifference}" \
+    echo -e "${ind}\t${AutorunProcessed}\t${dateAutorunProcessed}\t${dateLastDedup}\t${dateLastMultiqc}\t${GTfilePres}\t${GTlastMod}\t${coverageGTL}\t${higherCoverage}\t${impFilePres}\t${impLastMod}\t${impPublished}\t${impPubDate}\t${inIBD}\t${inMasterVCF}\t${covDifference}" \
         | sed 's/\t1\t/\tYES\t/g'| sed 's/\t1\t/\tYES\t/g'| sed 's/\t1\t/\tYES\t/g' \
         | sed  's/\t0\t/\tNO\t/g' | sed  's/\t0\t/\tNO\t/g' | sed  's/\t0\t/\tNO\t/g' | sed  's/\t0\t/\tNO\t/g' >> $tag.tsv
 
